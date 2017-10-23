@@ -1,0 +1,30 @@
+{
+  "name": "sobel-sight",
+  "version": "1.0.0",
+  "description": "A WebAssembly shell project, set up with task runners, testing and CI for JS and C++",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DanRuta/sobel-sight.git"
+  },
+  "keywords": [],
+  "main": "dist/sobel-sight-js.min.js",
+  "author": "Dan Ruta",
+  "license": "MIT",
+  "directories": {},
+  "bugs": {
+    "url": "https://github.com/DanRuta/sobel-sight/issues"
+  },
+  "engines": {
+    "node": ">= 8.4.0"
+  },
+  "homepage": "https://github.com/DanRuta/sobel-sight#readme",
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-cli": "^1.2.0",
+    "grunt-contrib-concat": "^1.0.1",
+    "grunt-contrib-uglify": "git://github.com/gruntjs/grunt-contrib-uglify.git#harmony",
+    "grunt-contrib-watch": "^1.0.0",
+    "grunt-exec": "^3.0.0"
+  }
+}
