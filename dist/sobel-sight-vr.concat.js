@@ -29,8 +29,8 @@ window.addEventListener("load", () => {
 
     // Scenes and camera
     const scene = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 1, 1000)
-    camera.position.z = 500
+    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000)
+    camera.position.z = 680
     scene.add(camera)
     camera.rotation.order = "YXZ"
 
@@ -44,16 +44,22 @@ window.addEventListener("load", () => {
 
 
         // TEMP
-        textureContext.beginPath()
         textureContext.rect(0,0, textureCanvas.width, textureCanvas.height)
         textureContext.fillStyle = "pink"
         textureContext.fill()
+
+        textureContext.beginPath()
+        textureContext.moveTo(0, 0)
+        textureContext.strokeStyle = "orange"
+        textureContext.lineTo(textureCanvas.width, textureCanvas.height)
+        textureContext.lineWidth = 10
+        textureContext.stroke()
 
 
 
 
     // Box object
-    const boxGeometry = new THREE.BoxGeometry(1300, 1000, 1)
+    const boxGeometry = new THREE.BoxGeometry(window.innerWidth, window.innerHeight, 1)
     const boxMaterial = new THREE.MeshBasicMaterial({map: texture})
     const box = new THREE.Mesh(boxGeometry, boxMaterial)
     box.rotation.order = "YXZ"
@@ -63,28 +69,10 @@ window.addEventListener("load", () => {
     texture.minFilter = THREE.NearestFilter
 
 
-    // Controls
-    let controls = new THREE.OrbitControls(camera, renderer.domElement)
-    controls.target.set(camera.position.x+0.15, camera.position.y, camera.position.z)
-    controls.noPan = true
-    controls.noZoom = true
-
-    // Set VR controls if available
-    const setOrientationControls = event => {
-        if (event.alpha) {
-            controls = new THREE.VRControls(camera)
-            controls.update()
-        }
-        window.removeEventListener("deviceorientation", setOrientationControls)
-    }
-    window.addEventListener("deviceorientation", setOrientationControls)
-
-
     // Render loop
     // ===========
     const render = () => {
         requestAnimationFrame(render)
-        controls.update()
 
         texture.needsUpdate = true
 
