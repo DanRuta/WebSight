@@ -11,6 +11,14 @@ module.exports = grunt => {
             "wa": {
                 src: ["dev/js/sobel-wa.js", "dist/ssWASM.js"],
                 dest: "dist/sobel-sight-wa.concat.js"
+            },
+            "vr": {
+                src: ["dev/js/sobel-vr.js"],
+                dest: "dist/sobel-sight-vr.concat.js"
+            },
+            "deps": {
+                src: ["lib/*.js", "!lib/three.min.js"],
+                dest: "dist/dependencies.concat.js"
             }
         },
 
@@ -23,7 +31,8 @@ module.exports = grunt => {
                 files: {
                     "dist/sobel-sight-wa.min.js" : ["dist/sobel-sight-wa.concat.js"],
                     "dist/sobel-sight-js.min.js" : ["dist/sobel-sight-js.concat.js"],
-                    // "dist/ssWASM.js" : ["dist/ssWASM.js"]
+                    "dist/sobel-sight-vr.min.js" : ["dist/sobel-sight-vr.concat.js"],
+                    "dist/dependencies.min.js" : ["lib/three.min.js", "dist/dependencies.concat.js"]
                 }
             }
         },
@@ -40,6 +49,10 @@ module.exports = grunt => {
             js: {
                 files: ["dev/js/*.js"],
                 tasks: ["concat", "uglify"]
+            },
+            deps: {
+                files: ["lib/*.js"],
+                tasks: ["concat:deps", "uglify"]
             }
         }
     })
