@@ -7,19 +7,19 @@ const sobelFilter = {
 
 class Sobel {
 
-    constructor () {}
+    constructor () {
+        this.video = document.createElement("video")
+    }
 
     buildMatrix (cx, cy) {
         const matrix = []
-        let nx = 0
-        let ny = 0
 
         for (let i = 0, y = 3; i < 3; i++, y++) {
             matrix[i] = []
 
             for (let j = 0, x = 3; j < 3; j++, x++) {
-                nx = cx + x
-                ny = cy + y
+                const nx = cx + x
+                const ny = cy + y
 
                 if (nx < 0 || nx >= this.width || ny < 0 || ny >= this.height) {
                     matrix[i][j] = undefined
@@ -44,14 +44,12 @@ class Sobel {
         const imgDataCopy = context.getImageData(0, 0, this.width, this.height)
 
         // Convolve
-        let x, y, cvsIndex, pixelIndex, matrix
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
 
-        for (y = 0; y < this.height; y++) {
-            for (x = 0; x < this.width; x++) {
-
-                pixelIndex = (y * this.width) + x
-                cvsIndex = x * 4 + y * this.width * 4
-                matrix = this.buildMatrix(x, y, 3)
+                const pixelIndex = y * this.width + x
+                const cvsIndex = x * 4 + y * this.width * 4
+                const matrix = this.buildMatrix(x, y)
 
                 let edgeX = 0
                 let edgeY = 0
@@ -60,10 +58,10 @@ class Sobel {
                     for (let i = 0; i < 3; i++) {
                         for (let j = 0; j < 3; j++) {
 
-                            if (!matrix[i][j]) continue
-
-                            edgeX += imgDataCopy.data[matrix[i][j]] * sobelFilter.x[i][j]
-                            edgeY += imgDataCopy.data[matrix[i][j]] * sobelFilter.y[i][j]
+                            if (matrix[i][j]) {
+                                edgeX += imgDataCopy.data[matrix[i][j]] * sobelFilter.x[i][j]
+                                edgeY += imgDataCopy.data[matrix[i][j]] * sobelFilter.y[i][j]
+                            }
                         }
                     }
                 }
@@ -81,9 +79,24 @@ class Sobel {
         context.putImageData(imgDataCopy, 0, 0)
     }
 
-    setSize (height, width) {
-        this.height = height
-        this.width = width
+    record () {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+
+            navigator.mediaDevices.getUserMedia({video: true}).then(stream => {
+                this.video.src = window.URL.createObjectURL(stream)
+                this.video.play()
+            })
+
+        } else {
+            alert("No camera available")
+        }
+    }
+
+    setSize () {
+        this.video.width = window.innerWidth / 2
+        this.video.height = window.innerHeight / 2
+        this.height = this.video.height
+        this.width = this.video.width
     }
 }
 

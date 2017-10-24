@@ -2,7 +2,6 @@
 <html>
 <head>
     <title>Sobel sight</title>
-    <!-- <script src="dist/sobel-sight-wa.concat.js"></script> -->
     <script src="dist/sobel-sight-js.concat.js"></script>
     <style>
     body {
@@ -13,61 +12,42 @@
     <script>
     "use strict"
     window.addEventListener("load", () => {
-    // window.addEventListener("wasmLoaded", () => { // For WebAssembly version
 
-        // const sobel = new Sobel(Module) // For WebAssembly version
         const sobel = new Sobel()
-        window.video = document.createElement("video")
         const canvas = document.createElement("canvas")
 
-        requestAnimationFrame(() => {
+        const setSize = () => {
+            sobel.setSize()
+            canvas.width = sobel.width
+            canvas.height = sobel.height
+            canvas.style.width = 2*canvas.width+"px"
+            canvas.style.height = 2*canvas.height+"px"
+        }
 
-            const setSize = () => {
+        sobel.video.onplaying = () => {
+            setSize()
+            document.body.appendChild(canvas)
 
-                video.width = window.innerWidth / 2
-                video.height = window.innerWidth * (window.innerHeight / window.innerWidth) / 2
-                canvas.width = window.innerWidth / 2
-                canvas.height = window.innerWidth * (window.innerHeight / window.innerWidth) / 2
-                sobel.setSize(canvas.height, canvas.width)
-                canvas.style.width = 2*canvas.width+"px"
-                canvas.style.height = 2*canvas.height+"px"
+            const context = canvas.getContext("2d")
 
-                // Uncomment and slowly resize the window for something cool
-                // video.width = video.videoWidth / 2
-                // video.height = video.videoHeight / 2
-                // sobel.setSize(video.height, video.width)
+            const capture = () => {
+                requestAnimationFrame(capture)
+                context.drawImage(sobel.video, 0, 0, canvas.width, canvas.height)
+                sobel.convolve(context)
             }
-
-            if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({video: true}).then(stream => {
-                    video.src = window.URL.createObjectURL(stream)
-                    video.play()
-                })
-            }
-
-            video.onplaying = () => {
-                setSize()
-                document.body.appendChild(canvas)
-
-                const context = canvas.getContext("2d")
-
-                const capture = () => {
-                    requestAnimationFrame(capture)
-                    context.drawImage(video, 0, 0, canvas.width, canvas.height)
-                    sobel.convolve(context)
-                }
-                capture()
+            capture()
 
 
-                canvas.addEventListener("click", () => {
-                    document.fullscreenEnabled && canvas.requestFullScreen() ||
-                    document.webkitFullscreenEnabled && canvas.webkitRequestFullScreen() ||
-                    document.mozFullScreenEnabled && canvas.mozRequestFullScreen() ||
-                    document.msFullScreenEnabled && canvas.msRequestFullScreen()
-                })
-                window.addEventListener("resize", setSize)
-            }
-        })
+            canvas.addEventListener("click", () => {
+                document.fullscreenEnabled && canvas.requestFullScreen() ||
+                document.webkitFullscreenEnabled && canvas.webkitRequestFullScreen() ||
+                document.mozFullScreenEnabled && canvas.mozRequestFullScreen() ||
+                document.msFullScreenEnabled && canvas.msRequestFullScreen()
+            })
+            window.addEventListener("resize", setSize)
+        }
+
+        sobel.record()
     })
     </script>
 </head>

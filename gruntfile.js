@@ -16,10 +16,10 @@ module.exports = grunt => {
                 src: ["dev/js/sobel-vr.js"],
                 dest: "dist/sobel-sight-vr.concat.js"
             },
-            "deps": {
-                src: ["lib/*.js", "!lib/three.min.js"],
-                dest: "dist/dependencies.concat.js"
-            }
+            // "deps": {
+            //     src: ["lib/*.js", "!lib/three.min.js"],
+            //     dest: "dist/dependencies.concat.js"
+            // }
         },
 
         uglify: {
@@ -32,7 +32,7 @@ module.exports = grunt => {
                     "dist/sobel-sight-wa.min.js" : ["dist/sobel-sight-wa.concat.js"],
                     "dist/sobel-sight-js.min.js" : ["dist/sobel-sight-js.concat.js"],
                     "dist/sobel-sight-vr.min.js" : ["dist/sobel-sight-vr.concat.js"],
-                    "dist/dependencies.min.js" : ["lib/three.min.js", "dist/dependencies.concat.js"]
+                    // "dist/dependencies.min.js" : ["lib/three.min.js", "dist/dependencies.concat.js"]
                 }
             }
         },
