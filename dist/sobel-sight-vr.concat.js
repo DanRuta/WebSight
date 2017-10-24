@@ -1,6 +1,12 @@
 "use strict"
 
+const degToRad = x => x * Math.PI / 180
+
 window.addEventListener("load", () => {
+
+    const fov = 70
+    const boxWidth = window.innerWidth
+    const boxHeight = window.innerHeight
 
     // Renderer and VR stuff
     const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true}) // Maybe no antialiasing for fps? Needs testing
@@ -29,8 +35,8 @@ window.addEventListener("load", () => {
 
     // Scenes and camera
     const scene = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000)
-    camera.position.z = 680
+    const camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 1, 1000)
+    camera.position.z = 0.5 * boxWidth * Math.atan(degToRad(90 - fov / 2))
     scene.add(camera)
     camera.rotation.order = "YXZ"
 
@@ -59,7 +65,7 @@ window.addEventListener("load", () => {
 
 
     // Box object
-    const boxGeometry = new THREE.BoxGeometry(window.innerWidth, window.innerHeight, 1)
+    const boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, 1)
     const boxMaterial = new THREE.MeshBasicMaterial({map: texture})
     const box = new THREE.Mesh(boxGeometry, boxMaterial)
     box.rotation.order = "YXZ"
