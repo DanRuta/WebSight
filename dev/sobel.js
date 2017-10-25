@@ -96,9 +96,6 @@ window.addEventListener("load", () => {
     if (!window.location.href.includes("localhost")) {
 
         renderer.domElement.addEventListener("click", () => {
-
-            new NoSleep().enable()
-
             document.fullscreenEnabled && renderer.domElement.requestFullScreen() ||
             document.webkitFullscreenEnabled && renderer.domElement.webkitRequestFullScreen() ||
             document.mozFullScreenEnabled && renderer.domElement.mozRequestFullScreen() ||
@@ -121,13 +118,11 @@ window.addEventListener("load", () => {
         if (mediaDevicesSupport) {
 
             navigator.mediaDevices.getUserMedia({video: {facingMode: "environment"}}).then(stream => {
-                console.log("stream", stream)
-
                 video.src = window.URL.createObjectURL(stream)
                 video.play()
             }).catch(err => {
                 console.log(err)
-                alert("There was an error accessing the camera.")
+                alert("There was an error accessing the camera. Please try again")
             })
 
         } else {
@@ -140,7 +135,7 @@ window.addEventListener("load", () => {
                     video.play()
                 }, err => {
                     console.log(err)
-                    alert("There was an error accessing the camera")
+                    alert("There was an error accessing the camera. Please try again.")
                 })
             } else {
                 alert("Camera not available")
