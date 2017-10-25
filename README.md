@@ -19,7 +19,7 @@ Pascolini D, M. S. "Global estimates of visual impairment." British Journal Opht
 
 
 #### To develop
-There are currently two versions. A vanilla JavaScript version and a WebAssembly version. ```npm install``` the dependencies and run grunt to compile/minify into the dist folder. You must first install emscripten to develop the WebAssembly version.
+```npm install``` the dependencies and run grunt to minify the code as you go.
 
 #### To run
 There is a demo ```index.html``` file included. You must serve this via the included ```server.js``` file which you can start with node.js.
