@@ -2,9 +2,11 @@
 <html>
 <head>
     <title>Sobel sight</title>
+    <meta charset="UTF-8">
     <script src="dist/dependencies.min.js"></script>
     <script id="vertexShaderSource" type="vertex">
         varying vec2 vUv;
+
         void main() {
            vUv = uv;
            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
@@ -32,11 +34,16 @@
             vec4 sobel_x = n[2] + (2.0*n[5]) + n[8] - (n[0] + (2.0*n[3]) + n[6]);
             vec4 sobel_y = n[0] + (2.0*n[1]) + n[2] - (n[6] + (2.0*n[7]) + n[8]);
 
-            sobel_x.g = sobel_x.r;
-            sobel_x.b = sobel_x.r;
+            float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0;
+            float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0;
 
-            sobel_y.g = sobel_y.r;
-            sobel_y.b = sobel_y.r;
+            sobel_x.r = avg_x;
+            sobel_x.g = avg_x;
+            sobel_x.b = avg_x;
+
+            sobel_y.r = avg_y;
+            sobel_y.g = avg_y;
+            sobel_y.b = avg_y;
 
             vec3 sobel = sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb));
             gl_FragColor = vec4( sobel, 1.0 );
@@ -51,12 +58,6 @@
         background-color: black;
     }
     </style>
-    <script>
-    "use strict"
-    window.addEventListener("load", () => {
-
-    })
-    </script>
 </head>
 <body>
 </body>
