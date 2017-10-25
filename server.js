@@ -13,13 +13,9 @@ http.createServer((request, response) => {
 
     console.log(path)
 
-    if (path=="/ssWASM.wasm") {
-        path = "/dist"+path
-    }
-
-    try{
+    try {
         data = fs.readFileSync(__dirname+path)
-    }catch(e){}
+    } catch(e){}
 
     response.end(data)
 

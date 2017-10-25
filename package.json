@@ -1,7 +1,7 @@
 {
   "name": "sobel-sight",
   "version": "1.0.0",
-  "description": "A WebAssembly shell project, set up with task runners, testing and CI for JS and C++",
+  "description": "Browser based real time edge detection in VR video pass-through, for the visually impaired",
   "scripts": {},
   "repository": {
     "type": "git",
@@ -9,7 +9,7 @@
   },
   "keywords": [],
   "main": "dist/sobel-sight-js.min.js",
-  "author": "Dan Ruta",
+  "author": "Dan Ruta, Louis Jordan, Tom James Fox",
   "license": "MIT",
   "directories": {},
   "bugs": {
@@ -24,7 +24,6 @@
     "grunt-cli": "^1.2.0",
     "grunt-contrib-concat": "^1.0.1",
     "grunt-contrib-uglify": "git://github.com/gruntjs/grunt-contrib-uglify.git#harmony",
-    "grunt-contrib-watch": "^1.0.0",
-    "grunt-exec": "^3.0.0"
+    "grunt-contrib-watch": "^1.0.0"
   }
 }
