@@ -47,8 +47,6 @@ class Sobel {
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
 
-                const pixelIndex = y * this.width + x
-                const cvsIndex = x * 4 + y * this.width * 4
                 const matrix = this.buildMatrix(x, y)
 
                 let edgeX = 0

@@ -46,17 +46,12 @@ bool isBorder (int x, int y) {
 
 uint8_t* convolve (uint8_t *buf, int bufSize) {
 
-    int cvsIndex;
-    int pixelIndex;
-    std::vector<std::vector<int> > matrix;
     uint8_t out[bufSize/4];
 
     for (int y=0; y<height; y++) {
         for (int x=0; x<width; x++) {
 
-            pixelIndex = y * width + x;
-            cvsIndex = x * 4 + y * width * 4;
-            matrix = buildMatrix(x, y);
+            std::vector<std::vector<int> > matrix = buildMatrix(x, y);
 
             int edgeX = 0;
             int edgeY = 0;

@@ -3,6 +3,45 @@
 <head>
     <title>Sobel sight</title>
     <script src="dist/dependencies.min.js"></script>
+    <script id="vertexShaderSource" type="vertex">
+        varying vec2 vUv;
+        void main() {
+           vUv = uv;
+           gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        }
+    </script>
+    <script id="fragmentShaderSource" type="fragment">
+        uniform sampler2D texture;
+        uniform float width;
+        uniform float height;
+        varying vec2 vUv;
+
+        void main() {
+
+            float w = 1.0 / width;
+            float h = 1.0 / height;
+            vec2 texCoord = vUv;
+            vec4 n[9];
+
+            for (int i=-1; i<=1; i++) {
+                for (int j=-1; j<=1; j++) {
+                    n[(j+1)+(i+1)*3] = texture2D(texture, texCoord + vec2(float(j)*w, float(i)*h) );
+                }
+            }
+
+            vec4 sobel_x = n[2] + (2.0*n[5]) + n[8] - (n[0] + (2.0*n[3]) + n[6]);
+            vec4 sobel_y = n[0] + (2.0*n[1]) + n[2] - (n[6] + (2.0*n[7]) + n[8]);
+
+            sobel_x.g = sobel_x.r;
+            sobel_x.b = sobel_x.r;
+
+            sobel_y.g = sobel_y.r;
+            sobel_y.b = sobel_y.r;
+
+            vec3 sobel = sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb));
+            gl_FragColor = vec4( sobel, 1.0 );
+        }
+    </script>
     <script src="dist/sobel-sight-js.concat.js"></script>
     <script src="dist/sobel-sight-vr.concat.js"></script>
     <style>

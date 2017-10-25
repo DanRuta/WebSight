@@ -12,8 +12,8 @@ window.addEventListener("load", () => {
         sobel.setSize()
 
         const fov = 70
-        const boxWidth = sobel.width // window.innerWidth
-        const boxHeight = sobel.height // window.innerHeight
+        const boxWidth = sobel.width
+        const boxHeight = sobel.height
 
         // Renderer and VR stuff
         const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true}) // Maybe no antialiasing for fps? Needs testing
@@ -44,7 +44,6 @@ window.addEventListener("load", () => {
         const scene = new THREE.Scene()
         const camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 1, 1000)
         camera.position.z = 0.5 * boxWidth * Math.atan(degToRad(90 - fov / 2)) + 100
-        // camera.position.z = 700
         scene.add(camera)
         camera.rotation.order = "YXZ"
 
@@ -52,29 +51,32 @@ window.addEventListener("load", () => {
         const textureCanvas = document.createElement("canvas")
         textureCanvas.height = boxHeight
         textureCanvas.width = boxWidth
+
         const textureContext = textureCanvas.getContext("2d")
-
-        const texture = new THREE.Texture(textureCanvas)
-
-
-            // TEMP
-            textureContext.rect(0,0, textureCanvas.width, textureCanvas.height)
-            textureContext.fillStyle = "pink"
-            textureContext.fill()
-
-            textureContext.beginPath()
-            textureContext.moveTo(0, 0)
-            textureContext.strokeStyle = "orange"
-            textureContext.lineTo(textureCanvas.width, textureCanvas.height)
-            textureContext.lineWidth = 10
-            textureContext.stroke()
-
-
-
+        // const texture = new THREE.Texture(textureCanvas)
+        const texture = new THREE.Texture(sobel.video)
 
         // Box object
         const boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, 1)
-        const boxMaterial = new THREE.MeshBasicMaterial({map: texture})
+        // const boxMaterial = new THREE.MeshBasicMaterial({map: texture})
+        const boxMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                texture: {
+                    type: "t",
+                    value: texture
+                },
+                width: {
+                    type: "f",
+                    value: sobel.width
+                },
+                height: {
+                    type: "f",
+                    value: sobel.height
+                }
+            },
+            vertexShader: vertexShaderSource.text,
+            fragmentShader: fragmentShaderSource.text
+        })
         const box = new THREE.Mesh(boxGeometry, boxMaterial)
         box.rotation.order = "YXZ"
         scene.add(box)
@@ -89,12 +91,9 @@ window.addEventListener("load", () => {
             requestAnimationFrame(render)
 
             textureContext.drawImage(sobel.video, 0, 0, sobel.video.width, sobel.video.height)
-
-            sobel.convolve(textureContext)
+            // sobel.convolve(textureContext)
 
             texture.needsUpdate = true
-
-
             effect.render(scene, camera)
         }
         render()
