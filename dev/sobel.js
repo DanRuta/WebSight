@@ -122,7 +122,7 @@ window.addEventListener("load", () => {
                 video.play()
             }).catch(err => {
                 console.log(err)
-                alert("There was an error accessing the camera. Please try again")
+                alert("There was an error accessing the camera. Please try again and ensure you are using https")
             })
 
         } else {
@@ -135,13 +135,13 @@ window.addEventListener("load", () => {
                     video.play()
                 }, err => {
                     console.log(err)
-                    alert("There was an error accessing the camera. Please try again.")
+                    alert("There was an error accessing the camera. Please try again and ensure you are using https.")
                 })
             } else {
                 alert("Camera not available")
             }
         }
     } catch (e) {
-        alert("Error getting camera feed")
+        alert("Error getting camera feed. Please ensure you are using https.")
     }
 })

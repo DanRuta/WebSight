@@ -2,7 +2,7 @@ Sobel Sight
 ===
 Browser based real time edge detection in VR video pass-through, for the visually impaired
 
-Early demo: https://danruta.co.uk/sobel
+Live demo: https://sobel.danruta.co.uk/
 
 ---
 
