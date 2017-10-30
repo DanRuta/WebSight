@@ -10,6 +10,17 @@ module.exports = grunt => {
             }
         },
 
+        babel: {
+            options: {
+                presets: ["env"]
+            },
+            dist: {
+                files: {
+                    "dist/sobel.es5.js": ["dev/sobel.js"]
+                }
+            }
+        },
+
         uglify: {
             my_target: {
                 options: {
@@ -17,7 +28,7 @@ module.exports = grunt => {
                     mangle: false,
                 },
                 files: {
-                    "dist/sobel-sight.min.js" : ["dev/sobel.js"],
+                    "dist/sobel-sight.min.js" : ["dist/sobel.es5.js"],
                     // "dist/dependencies.min.js" : ["lib/three.min.js", "dist/dependencies.concat.js"]
                 }
             }
@@ -26,7 +37,7 @@ module.exports = grunt => {
         watch: {
             dev: {
                 files: ["dev/sobel.js"],
-                tasks: ["concat", "uglify"]
+                tasks: ["concat", "babel", "uglify"]
             },
             deps: {
                 files: ["lib/*.js"],
@@ -35,6 +46,7 @@ module.exports = grunt => {
         }
     })
 
+    grunt.loadNpmTasks("grunt-babel")
     grunt.loadNpmTasks("grunt-contrib-watch")
     grunt.loadNpmTasks('grunt-contrib-concat')
     grunt.loadNpmTasks('grunt-contrib-uglify')

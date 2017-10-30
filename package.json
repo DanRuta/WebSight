@@ -20,7 +20,10 @@
   },
   "homepage": "https://github.com/DanRuta/sobel-sight#readme",
   "devDependencies": {
+    "babel-preset-env": "^1.6.1",
+    "babelify": "^7.3.0",
     "grunt": "^1.0.1",
+    "grunt-babel": "*",
     "grunt-cli": "^1.2.0",
     "grunt-contrib-concat": "^1.0.1",
     "grunt-contrib-uglify": "git://github.com/gruntjs/grunt-contrib-uglify.git#harmony",
