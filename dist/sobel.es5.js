@@ -79,10 +79,14 @@ window.addEventListener("load", function () {
             radius: {
                 type: "f",
                 value: 0.4
+            },
+            intensity: {
+                type: "f",
+                value: 1.0
             }
         },
         vertexShader: vertexShaderSource.text,
-        fragmentShader: Filters.sobelCircle
+        fragmentShader: Filters.compileShader("sobel3x3")
     });
     var box = new THREE.Mesh(boxGeometry, boxMaterial);
     scene.add(box);
@@ -150,12 +154,15 @@ window.addEventListener("load", function () {
     // =======
     //  Temporary, until the UI is implemented
     // =======
-    window.updateTo = function (shader) {
-        boxMaterial.fragmentShader = Filters[shader];
+    window.setShader = function (shader) {
+        boxMaterial.fragmentShader = Filters.compileShader(shader);
         boxMaterial.needsUpdate = true;
     };
     window.setRadius = function (val) {
         boxMaterial.uniforms.radius.value = val;
+    };
+    window.setIntensity = function (val) {
+        boxMaterial.uniforms.intensity.value = 1 - val;
     };
     // =======
 });
@@ -167,29 +174,9 @@ var Filters = function () {
     }
 
     _createClass(Filters, null, [{
-        key: "inverted",
-        get: function get() {
-            return "\n            uniform sampler2D texture;\n            varying vec2 vUv;\n\n            void main() {\n                vec4 pixel = texture2D(texture, vUv);\n                gl_FragColor = vec4( 1.0 - pixel.r, 1.0 - pixel.g, 1.0 - pixel.b, 1.0 );\n            }\n        ";
-        }
-    }, {
-        key: "invertedCircle",
-        get: function get() {
-            return "\n            uniform sampler2D texture;\n            varying vec2 vUv;\n            uniform float radius;\n\n            void main() {\n                vec4 pixel = texture2D(texture, vUv);\n\n                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < radius) {\n                    gl_FragColor = vec4( 1.0 - pixel.r, 1.0 - pixel.g, 1.0 - pixel.b, 1.0 );\n\n                } else {\n                    gl_FragColor = vec4(pixel.r, pixel.g, pixel.b, 1.0);\n                }\n            }\n        ";
-        }
-    }, {
-        key: "sobel8020",
-        get: function get() {
-            return "\n            uniform sampler2D texture;\n            uniform float width;\n            uniform float height;\n            varying vec2 vUv;\n\n            void main() {\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n                vec4 n[9];\n                vec4 pixel = texture2D(texture, vUv);\n\n                for (int i=-1; i<=1; i++) {\n                    for (int j=-1; j<=1; j++) {\n                        n[(j+1)+(i+1)*3] = texture2D(texture, vUv + vec2(float(j)*w, float(i)*h) );\n                    }\n                }\n\n                vec4 sobel_x = n[2] + (2.0*n[5]) + n[8] - (n[0] + (2.0*n[3]) + n[6]);\n                vec4 sobel_y = n[0] + (2.0*n[1]) + n[2] - (n[6] + (2.0*n[7]) + n[8]);\n                float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0;\n                float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0;\n                sobel_x.r = pixel.r*0.8 + avg_x;\n                sobel_x.g = pixel.g*0.8 + avg_x;\n                sobel_x.b = pixel.b*0.8 + avg_x;\n                sobel_y.r = pixel.r*0.8 + avg_y;\n                sobel_y.g = pixel.g*0.8 + avg_y;\n                sobel_y.b = pixel.b*0.8 + avg_y;\n                gl_FragColor = vec4( sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)), 1.0 );\n            }\n        ";
-        }
-    }, {
-        key: "sobelCircle",
-        get: function get() {
-            return "\n            uniform sampler2D texture;\n            uniform float width;\n            uniform float height;\n            uniform float radius;\n            varying vec2 vUv;\n\n            void main() {\n\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n                vec4 n[9];\n\n                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < radius) {\n\n                    for (int i=-1; i<=1; i++) {\n                        for (int j=-1; j<=1; j++) {\n                            n[(j+1)+(i+1)*3] = texture2D(texture, vUv + vec2(float(j)*w, float(i)*h) );\n                        }\n                    }\n\n                    vec4 sobel_x = n[2] + (2.0*n[5]) + n[8] - (n[0] + (2.0*n[3]) + n[6]);\n                    vec4 sobel_y = n[0] + (2.0*n[1]) + n[2] - (n[6] + (2.0*n[7]) + n[8]);\n\n                    float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0;\n                    float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0;\n                    sobel_x.r = avg_x;\n                    sobel_x.g = avg_x;\n                    sobel_x.b = avg_x;\n                    sobel_y.r = avg_y;\n                    sobel_y.g = avg_y;\n                    sobel_y.b = avg_y;\n\n                    gl_FragColor = vec4( sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)), 1.0 );\n                } else {\n                    vec4 pixel = texture2D(texture, vUv);\n                    gl_FragColor = vec4(pixel.r, pixel.g, pixel.b, 1.0);\n                }\n            }\n        ";
-        }
-    }, {
-        key: "sobelCircle8020",
-        get: function get() {
-            return "\n            uniform sampler2D texture;\n            uniform float width;\n            uniform float height;\n            uniform float radius;\n            varying vec2 vUv;\n\n            void main() {\n\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n                vec4 n[9];\n\n                vec4 pixel = texture2D(texture, vUv);\n\n                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < radius) {\n\n                    for (int i=-1; i<=1; i++) {\n                        for (int j=-1; j<=1; j++) {\n                            n[(j+1)+(i+1)*3] = texture2D(texture, vUv + vec2(float(j)*w, float(i)*h) );\n                        }\n                    }\n\n                    vec4 sobel_x = n[2] + (2.0*n[5]) + n[8] - (n[0] + (2.0*n[3]) + n[6]);\n                    vec4 sobel_y = n[0] + (2.0*n[1]) + n[2] - (n[6] + (2.0*n[7]) + n[8]);\n\n                    float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0;\n                    float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0;\n\n                    sobel_x.r = pixel.r*0.8 + avg_x;\n                    sobel_x.g = pixel.g*0.8 + avg_x;\n                    sobel_x.b = pixel.b*0.8 + avg_x;\n                    sobel_y.r = pixel.r*0.8 + avg_y;\n                    sobel_y.g = pixel.g*0.8 + avg_y;\n                    sobel_y.b = pixel.b*0.8 + avg_y;\n\n                    gl_FragColor = vec4( sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)), 1.0 );\n                } else {\n                    vec4 pixel = texture2D(texture, vUv);\n                    gl_FragColor = vec4(pixel.r, pixel.g, pixel.b, 1.0);\n                }\n            }\n        ";
+        key: "compileShader",
+        value: function compileShader(name) {
+            return "\n            uniform sampler2D texture;\n            uniform float width;\n            uniform float height;\n            uniform float radius;\n            uniform float intensity;\n            varying vec2 vUv;\n\n            void main() {\n\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n\n                vec4 pixel = texture2D(texture, vUv);\n\n                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < radius) {\n\n                    " + this[name + "Body"] + "\n\n                    if (intensity!=1.0) {\n                        newColour.r = newColour.r*(1.0-intensity) + pixel.r*intensity;\n                        newColour.g = newColour.g*(1.0-intensity) + pixel.g*intensity;\n                        newColour.b = newColour.b*(1.0-intensity) + pixel.b*intensity;\n                    }\n                    gl_FragColor = newColour;\n\n                } else {\n                    vec4 pixel = texture2D(texture, vUv);\n                    gl_FragColor = vec4(pixel.r, pixel.g, pixel.b, 1.0);\n                }\n            }\n        ";
         }
 
         /*
@@ -199,9 +186,9 @@ var Filters = function () {
         */
 
     }, {
-        key: "sobel",
+        key: "sobel3x3Body",
         get: function get() {
-            return "\n            uniform sampler2D texture;\n            uniform float width;\n            uniform float height;\n            varying vec2 vUv;\n\n            void main() {\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n                vec4 n[9];\n                for (int i=-1; i<=1; i++) {\n                    for (int j=-1; j<=1; j++) {\n                        n[(j+1)+(i+1)*3] = texture2D(texture, vUv + vec2(float(j)*w, float(i)*h) );\n                    }\n                }\n                vec4 sobel_x = n[2] + 2.0*n[5] + n[8] - (n[0] + 2.0*n[3] + n[6]);\n                vec4 sobel_y = n[0] + 2.0*n[1] + n[2] - (n[6] + 2.0*n[7] + n[8]);\n\n                float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0;\n                float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0;\n                sobel_x.r = avg_x;\n                sobel_x.g = avg_x;\n                sobel_x.b = avg_x;\n                sobel_y.r = avg_y;\n                sobel_y.g = avg_y;\n                sobel_y.b = avg_y;\n                gl_FragColor = vec4( sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)), 1.0 );\n            }\n        ";
+            return "\n            vec4 n[9];\n\n            for (int i=-1; i<=1; i++) {\n                for (int j=-1; j<=1; j++) {\n                    n[(j+1)+(i+1)*3] = texture2D(texture, vUv + vec2(float(j)*w, float(i)*h) );\n                }\n            }\n\n            vec4 sobel_x = n[2] + (2.0*n[5]) + n[8] - (n[0] + (2.0*n[3]) + n[6]);\n            vec4 sobel_y = n[0] + (2.0*n[1]) + n[2] - (n[6] + (2.0*n[7]) + n[8]);\n\n            float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0;\n            float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0;\n\n            sobel_x.r = avg_x;\n            sobel_x.g = avg_x;\n            sobel_x.b = avg_x;\n            sobel_y.r = avg_y;\n            sobel_y.g = avg_y;\n            sobel_y.b = avg_y;\n\n            vec4 newColour = vec4( sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)), 1.0 );\n        ";
         }
 
         /*
@@ -213,9 +200,14 @@ var Filters = function () {
         */
 
     }, {
-        key: "sobel5x5",
+        key: "sobel5x5Body",
         get: function get() {
-            return "\n            uniform sampler2D texture;\n            uniform float width;\n            uniform float height;\n            varying vec2 vUv;\n\n            void main() {\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n                vec4 n[25];\n\n                for (int i=-2; i<=2; i++) {\n                    for (int j=-2; j<=2; j++) {\n                        n[(j+2)+(i+2)*5] = texture2D(texture, vUv + vec2(float(j)*w, float(i)*h) );\n                    }\n                }\n\n                vec4 sobel_x = 2.0*n[4] + 3.0*n[9] + 4.0*n[14] + 3.0*n[19] + 2.0*n[24] +\n                               n[3] + 2.0*n[8] + 3.0*n[13] + 2.0*n[18] + n[23] -\n                               (2.0*n[0] + 3.0*n[5] + 4.0*n[10] + 3.0*n[15] + 2.0*n[20] +\n                               n[1] + 2.0*n[6] + 3.0*n[11] + 2.0*n[16] + n[21]);\n\n                vec4 sobel_y = 2.0*n[0] + n[1] + n[3] + n[4] +\n                               3.0*n[5] + 2.0*n[6] + 2.0*n[8] + 3.0*n[9] -\n                               (3.0*n[15] + 2.0*n[16] + 2.0*n[18] + 3.0*n[19] +\n                                2.0*n[20] + n[21] + n[23] + n[24]);\n\n                float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0;\n                float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0;\n                sobel_x.r = avg_x;\n                sobel_x.g = avg_x;\n                sobel_x.b = avg_x;\n                sobel_y.r = avg_y;\n                sobel_y.g = avg_y;\n                sobel_y.b = avg_y;\n                gl_FragColor = vec4( sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)), 1.0 );\n            }\n        ";
+            return "\n            vec4 n[25];\n\n            for (int i=-2; i<=2; i++) {\n                for (int j=-2; j<=2; j++) {\n                    n[(j+2)+(i+2)*5] = texture2D(texture, vUv + vec2(float(j)*w, float(i)*h) );\n                }\n            }\n\n            vec4 sobel_x = 2.0*n[4] + 3.0*n[9] + 4.0*n[14] + 3.0*n[19] + 2.0*n[24] +\n                           n[3] + 2.0*n[8] + 3.0*n[13] + 2.0*n[18] + n[23] -\n                           (2.0*n[0] + 3.0*n[5] + 4.0*n[10] + 3.0*n[15] + 2.0*n[20] +\n                           n[1] + 2.0*n[6] + 3.0*n[11] + 2.0*n[16] + n[21]);\n\n            vec4 sobel_y = 2.0*n[0] + n[1] + n[3] + n[4] +\n                           3.0*n[5] + 2.0*n[6] + 2.0*n[8] + 3.0*n[9] -\n                           (3.0*n[15] + 2.0*n[16] + 2.0*n[18] + 3.0*n[19] +\n                            2.0*n[20] + n[21] + n[23] + n[24]);\n\n            float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0;\n            float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0;\n            sobel_x.r = avg_x;\n            sobel_x.g = avg_x;\n            sobel_x.b = avg_x;\n            sobel_y.r = avg_y;\n            sobel_y.g = avg_y;\n            sobel_y.b = avg_y;\n            vec4 newColour = vec4( sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)), 1.0 );\n        ";
+        }
+    }, {
+        key: "invertedBody",
+        get: function get() {
+            return "\n            vec4 pixel = texture2D(texture, vUv);\n            vec4 newColour = vec4( 1.0 - pixel.r, 1.0 - pixel.g, 1.0 - pixel.b, 1.0 );\n        ";
         }
     }]);
 

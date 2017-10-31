@@ -74,10 +74,14 @@ window.addEventListener("load", () => {
             radius: {
                 type: "f",
                 value: 0.4
+            },
+            intensity: {
+                type: "f",
+                value: 1.0
             }
         },
         vertexShader: vertexShaderSource.text,
-        fragmentShader: Filters.sobelCircle
+        fragmentShader: Filters.compileShader("sobel3x3")
     })
     const box = new THREE.Mesh(boxGeometry, boxMaterial)
     scene.add(box)
@@ -151,12 +155,15 @@ window.addEventListener("load", () => {
     // =======
     //  Temporary, until the UI is implemented
     // =======
-    window.updateTo = shader => {
-        boxMaterial.fragmentShader = Filters[shader]
+    window.setShader = shader => {
+        boxMaterial.fragmentShader = Filters.compileShader(shader)
         boxMaterial.needsUpdate = true
     }
     window.setRadius = val => {
         boxMaterial.uniforms.radius.value = val
+    }
+    window.setIntensity = val => {
+        boxMaterial.uniforms.intensity.value = 1-val
     }
     // =======
 })
