@@ -73,7 +73,7 @@ window.addEventListener("load", () => {
             }
         },
         vertexShader: vertexShaderSource.text,
-        fragmentShader: Filters.sobel
+        fragmentShader: Filters.sobel5x5
     })
     const box = new THREE.Mesh(boxGeometry, boxMaterial)
     scene.add(box)
@@ -143,16 +143,16 @@ window.addEventListener("load", () => {
     } catch (e) {
         alert("Error getting camera feed. Please ensure you are using https.")
     }
+
+    // =======
+    //  Temporary, until the UI is implemented
+    // =======
+    window.updateTo = shader => {
+        boxMaterial.fragmentShader = Filters[shader]
+        boxMaterial.needsUpdate = true
+    }
+    // =======
 })
 
 
 
-
-// =======
-//  Temporary, until the UI is implemented
-// =======
-window.updateTo = shader => {
-    boxMaterial.fragmentShader = Filters[shader]
-    boxMaterial.needsUpdate = true
-}
-// =======
