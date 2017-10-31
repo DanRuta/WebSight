@@ -32,18 +32,16 @@ window.addEventListener("load", () => {
     }
 
     // Button to enable VR mode
-    const vrButton = VRSamplesUtil.addButton("Enter VR", "E", "/images/cardboard64.png", () => {
-
+    enterVRButton.addEventListener("click", () => {
         if (navigator.userAgent.includes("Mobile VR")) {
             vrDisplay.requestPresent([{source: renderer.domElement}])
         } else {
             effect = new THREE.StereoEffect(renderer)
             effect.separation = 0
             effect.setSize(window.innerWidth, window.innerHeight)
-            document.getElementById("vr-sample-button-container").style.display = "none"
+            enterVRButton.style.display = "none"
         }
     })
-
 
     // Scenes and camera
     const scene = new THREE.Scene()
