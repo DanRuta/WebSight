@@ -4,6 +4,10 @@ module.exports = grunt => {
             options: {
                 sourceMap: true
             },
+            "js": {
+                src: ["dev/sobel.js", "dev/filters.js"],
+                dest: "dist/sobel.concat.js"
+            },
             "deps": {
                 src: ["lib/*.js", "!lib/three.min.js"],
                 dest: "dist/dependencies.concat.js"
@@ -16,7 +20,7 @@ module.exports = grunt => {
             },
             dist: {
                 files: {
-                    "dist/sobel.es5.js": ["dev/sobel.js"]
+                    "dist/sobel.es5.js": ["dist/sobel.concat.js"]
                 }
             }
         },
@@ -36,8 +40,8 @@ module.exports = grunt => {
 
         watch: {
             dev: {
-                files: ["dev/sobel.js"],
-                tasks: ["concat", "babel", "uglify"]
+                files: ["dev/*.js"],
+                tasks: ["concat:js", "babel", "uglify"]
             },
             deps: {
                 files: ["lib/*.js"],

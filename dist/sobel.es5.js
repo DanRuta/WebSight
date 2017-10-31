@@ -1,5 +1,9 @@
 "use strict";
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 var degToRad = function degToRad(x) {
     return x * Math.PI / 180;
 };
@@ -74,7 +78,7 @@ window.addEventListener("load", function () {
             }
         },
         vertexShader: vertexShaderSource.text,
-        fragmentShader: fragmentShaderSource.text
+        fragmentShader: Filters.sobel
     });
     var box = new THREE.Mesh(boxGeometry, boxMaterial);
     scene.add(box);
@@ -139,3 +143,54 @@ window.addEventListener("load", function () {
         alert("Error getting camera feed. Please ensure you are using https.");
     }
 });
+
+// =======
+//  Temporary, until the UI is implemented
+// =======
+window.updateTo = function (shader) {
+    boxMaterial.fragmentShader = Filters[shader];
+    boxMaterial.needsUpdate = true;
+};
+// =======
+"use strict";
+
+var Filters = function () {
+    function Filters() {
+        _classCallCheck(this, Filters);
+    }
+
+    _createClass(Filters, null, [{
+        key: "inverted",
+        get: function get() {
+            return "\n            uniform sampler2D texture;\n            varying vec2 vUv;\n\n            void main() {\n                vec4 pixel = texture2D(texture, vUv);\n                gl_FragColor = vec4( 1.0 - pixel.r, 1.0 - pixel.g, 1.0 - pixel.b, 1.0 );\n            }\n        ";
+        }
+    }, {
+        key: "invertedCircle",
+        get: function get() {
+            return "\n            uniform sampler2D texture;\n            varying vec2 vUv;\n\n            void main() {\n                vec4 pixel = texture2D(texture, vUv);\n\n                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < 0.4) {\n                    gl_FragColor = vec4( 1.0 - pixel.r, 1.0 - pixel.g, 1.0 - pixel.b, 1.0 );\n\n                } else {\n                    gl_FragColor = vec4(pixel.r, pixel.g, pixel.b, 1.0);\n                }\n            }\n        ";
+        }
+    }, {
+        key: "sobel8020",
+        get: function get() {
+            return "\n            uniform sampler2D texture;\n            uniform float width;\n            uniform float height;\n            varying vec2 vUv;\n\n            void main() {\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n                vec4 n[9];\n                vec4 pixel = texture2D(texture, vUv);\n\n                for (int i=-1; i<=1; i++) {\n                    for (int j=-1; j<=1; j++) {\n                        n[(j+1)+(i+1)*3] = texture2D(texture, vUv + vec2(float(j)*w, float(i)*h) );\n                    }\n                }\n\n                vec4 sobel_x = n[2] + (2.0*n[5]) + n[8] - (n[0] + (2.0*n[3]) + n[6]);\n                vec4 sobel_y = n[0] + (2.0*n[1]) + n[2] - (n[6] + (2.0*n[7]) + n[8]);\n                float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0;\n                float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0;\n                sobel_x.r = pixel.r*0.8 + avg_x;\n                sobel_x.g = pixel.g*0.8 + avg_x;\n                sobel_x.b = pixel.b*0.8 + avg_x;\n                sobel_y.r = pixel.r*0.8 + avg_y;\n                sobel_y.g = pixel.g*0.8 + avg_y;\n                sobel_y.b = pixel.b*0.8 + avg_y;\n                gl_FragColor = vec4( sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)), 1.0 );\n            }\n        ";
+        }
+    }, {
+        key: "sobelCircle",
+        get: function get() {
+            return "\n            uniform sampler2D texture;\n            uniform float width;\n            uniform float height;\n            varying vec2 vUv;\n\n            void main() {\n\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n                vec4 n[9];\n\n                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < 0.4) {\n\n                    for (int i=-1; i<=1; i++) {\n                        for (int j=-1; j<=1; j++) {\n                            n[(j+1)+(i+1)*3] = texture2D(texture, vUv + vec2(float(j)*w, float(i)*h) );\n                        }\n                    }\n\n                    vec4 sobel_x = n[2] + (2.0*n[5]) + n[8] - (n[0] + (2.0*n[3]) + n[6]);\n                    vec4 sobel_y = n[0] + (2.0*n[1]) + n[2] - (n[6] + (2.0*n[7]) + n[8]);\n\n                    float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0;\n                    float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0;\n                    sobel_x.r = avg_x;\n                    sobel_x.g = avg_x;\n                    sobel_x.b = avg_x;\n                    sobel_y.r = avg_y;\n                    sobel_y.g = avg_y;\n                    sobel_y.b = avg_y;\n\n                    gl_FragColor = vec4( sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)), 1.0 );\n                } else {\n                    vec4 pixel = texture2D(texture, vUv);\n                    gl_FragColor = vec4(pixel.r, pixel.g, pixel.b, 1.0);\n                }\n            }\n        ";
+        }
+    }, {
+        key: "sobelCircle8020",
+        get: function get() {
+            return "\n            uniform sampler2D texture;\n            uniform float width;\n            uniform float height;\n            varying vec2 vUv;\n\n            void main() {\n\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n                vec4 n[9];\n\n                vec4 pixel = texture2D(texture, vUv);\n\n                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < 0.4) {\n\n                    for (int i=-1; i<=1; i++) {\n                        for (int j=-1; j<=1; j++) {\n                            n[(j+1)+(i+1)*3] = texture2D(texture, vUv + vec2(float(j)*w, float(i)*h) );\n                        }\n                    }\n\n                    vec4 sobel_x = n[2] + (2.0*n[5]) + n[8] - (n[0] + (2.0*n[3]) + n[6]);\n                    vec4 sobel_y = n[0] + (2.0*n[1]) + n[2] - (n[6] + (2.0*n[7]) + n[8]);\n\n                    float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0;\n                    float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0;\n\n                    sobel_x.r = pixel.r*0.8 + avg_x;\n                    sobel_x.g = pixel.g*0.8 + avg_x;\n                    sobel_x.b = pixel.b*0.8 + avg_x;\n                    sobel_y.r = pixel.r*0.8 + avg_y;\n                    sobel_y.g = pixel.g*0.8 + avg_y;\n                    sobel_y.b = pixel.b*0.8 + avg_y;\n\n                    gl_FragColor = vec4( sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)), 1.0 );\n                } else {\n                    vec4 pixel = texture2D(texture, vUv);\n                    gl_FragColor = vec4(pixel.r, pixel.g, pixel.b, 1.0);\n                }\n            }\n        ";
+        }
+    }, {
+        key: "sobel",
+        get: function get() {
+            return "\n            uniform sampler2D texture;\n            uniform float width;\n            uniform float height;\n            varying vec2 vUv;\n\n            void main() {\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n                vec4 n[9];\n                for (int i=-1; i<=1; i++) {\n                    for (int j=-1; j<=1; j++) {\n                        n[(j+1)+(i+1)*3] = texture2D(texture, vUv + vec2(float(j)*w, float(i)*h) );\n                    }\n                }\n                vec4 sobel_x = n[2] + (2.0*n[5]) + n[8] - (n[0] + (2.0*n[3]) + n[6]);\n                vec4 sobel_y = n[0] + (2.0*n[1]) + n[2] - (n[6] + (2.0*n[7]) + n[8]);\n                float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0;\n                float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0;\n                sobel_x.r = avg_x;\n                sobel_x.g = avg_x;\n                sobel_x.b = avg_x;\n                sobel_y.r = avg_y;\n                sobel_y.g = avg_y;\n                sobel_y.b = avg_y;\n                gl_FragColor = vec4( sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)), 1.0 );\n            }\n        ";
+        }
+    }]);
+
+    return Filters;
+}();
+//# sourceMappingURL=sobel.concat.js.map

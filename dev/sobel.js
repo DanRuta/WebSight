@@ -73,7 +73,7 @@ window.addEventListener("load", () => {
             }
         },
         vertexShader: vertexShaderSource.text,
-        fragmentShader: fragmentShaderSource.text
+        fragmentShader: Filters.sobel
     })
     const box = new THREE.Mesh(boxGeometry, boxMaterial)
     scene.add(box)
@@ -90,7 +90,6 @@ window.addEventListener("load", () => {
         effect.render(scene, camera)
     }
     render()
-
 
     // Do fullscreen + prevent the display from going to sleep when tapped
     if (!window.location.href.includes("localhost")) {
@@ -145,3 +144,15 @@ window.addEventListener("load", () => {
         alert("Error getting camera feed. Please ensure you are using https.")
     }
 })
+
+
+
+
+// =======
+//  Temporary, until the UI is implemented
+// =======
+window.updateTo = shader => {
+    boxMaterial.fragmentShader = Filters[shader]
+    boxMaterial.needsUpdate = true
+}
+// =======
