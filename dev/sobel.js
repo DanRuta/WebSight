@@ -70,10 +70,14 @@ window.addEventListener("load", () => {
             height: {
                 type: "f",
                 value: video.height
+            },
+            radius: {
+                type: "f",
+                value: 0.4
             }
         },
         vertexShader: vertexShaderSource.text,
-        fragmentShader: Filters.sobel5x5
+        fragmentShader: Filters.sobelCircle
     })
     const box = new THREE.Mesh(boxGeometry, boxMaterial)
     scene.add(box)
@@ -150,6 +154,9 @@ window.addEventListener("load", () => {
     window.updateTo = shader => {
         boxMaterial.fragmentShader = Filters[shader]
         boxMaterial.needsUpdate = true
+    }
+    window.setRadius = val => {
+        boxMaterial.uniforms.radius.value = val
     }
     // =======
 })

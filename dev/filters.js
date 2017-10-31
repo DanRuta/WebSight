@@ -18,11 +18,12 @@ class Filters {
         return `
             uniform sampler2D texture;
             varying vec2 vUv;
+            uniform float radius;
 
             void main() {
                 vec4 pixel = texture2D(texture, vUv);
 
-                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < 0.4) {
+                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < radius) {
                     gl_FragColor = vec4( 1.0 - pixel.r, 1.0 - pixel.g, 1.0 - pixel.b, 1.0 );
 
                 } else {
@@ -71,6 +72,7 @@ class Filters {
             uniform sampler2D texture;
             uniform float width;
             uniform float height;
+            uniform float radius;
             varying vec2 vUv;
 
             void main() {
@@ -79,7 +81,7 @@ class Filters {
                 float h = 1.0 / height;
                 vec4 n[9];
 
-                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < 0.4) {
+                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < radius) {
 
                     for (int i=-1; i<=1; i++) {
                         for (int j=-1; j<=1; j++) {
@@ -113,6 +115,7 @@ class Filters {
             uniform sampler2D texture;
             uniform float width;
             uniform float height;
+            uniform float radius;
             varying vec2 vUv;
 
             void main() {
@@ -123,7 +126,7 @@ class Filters {
 
                 vec4 pixel = texture2D(texture, vUv);
 
-                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < 0.4) {
+                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < radius) {
 
                     for (int i=-1; i<=1; i++) {
                         for (int j=-1; j<=1; j++) {
