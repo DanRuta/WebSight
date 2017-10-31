@@ -4,17 +4,6 @@ const degToRad = x => x * Math.PI / 180
 
 window.addEventListener("load", () => {
 
-    window.video = document.createElement("video")
-    video.autoplay = true
-
-    video.width = window.innerWidth / 2
-    video.height = window.innerHeight / 2
-
-    const fov = 70
-    const boxWidth = video.width
-    const boxHeight = video.height
-
-
     // Renderer and VR stuff
     const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true})
     renderer.setSize(window.innerWidth, window.innerHeight)
@@ -44,46 +33,99 @@ window.addEventListener("load", () => {
     })
 
     // Scenes and camera
+    const fov = 70
     const scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 1, 1000)
-    camera.position.z = 0.5 * boxWidth * Math.atan(degToRad(90 - fov / 2)) + 100
     scene.add(camera)
 
 
     // Box object
-    const boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, 1)
-    const texture = new THREE.Texture(video)
-    texture.minFilter = THREE.NearestFilter
+    let texture
+    let boxMaterial
+    let box
 
-    const boxMaterial = new THREE.ShaderMaterial({
-        uniforms: {
-            texture: {
-                type: "t",
-                value: texture
+    const makeBoxObject = () => {
+
+        window.video = document.createElement("video")
+        video.autoplay = true
+        video.width = window.innerWidth / 2
+        video.height = window.innerHeight / 2
+        getVideoFeed()
+
+        const boxWidth = video.width
+        const boxHeight = video.height
+
+        const boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, 1)
+        texture = new THREE.Texture(video)
+        texture.minFilter = THREE.NearestFilter
+
+        boxMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                texture: {
+                    type: "t",
+                    value: texture
+                },
+                width: {
+                    type: "f",
+                    value: video.width
+                },
+                height: {
+                    type: "f",
+                    value: video.height
+                },
+                radius: {
+                    type: "f",
+                    value: 0.4
+                },
+                intensity: {
+                    type: "f",
+                    value: 1.0
+                }
             },
-            width: {
-                type: "f",
-                value: video.width
-            },
-            height: {
-                type: "f",
-                value: video.height
-            },
-            radius: {
-                type: "f",
-                value: 0.4
-            },
-            intensity: {
-                type: "f",
-                value: 1.0
+            vertexShader: vertexShaderSource.text,
+            fragmentShader: Filters.compileShader("sobel3x3")
+        })
+
+        box = new THREE.Mesh(boxGeometry, boxMaterial)
+        scene.add(box)
+
+        camera.position.z = 0.5 * boxWidth * Math.atan(degToRad(90 - fov / 2)) + 100
+    }
+
+    const getVideoFeed = () => {
+        try {
+            const mediaDevicesSupport = navigator.mediaDevices && navigator.mediaDevices.getUserMedia
+
+            if (mediaDevicesSupport) {
+
+                navigator.mediaDevices.getUserMedia({video: {facingMode: "environment"}}).then(stream => {
+                    video.src = window.URL.createObjectURL(stream)
+                }).catch(err => {
+                    console.log(err)
+                    alert("There was an error accessing the camera. Please try again and ensure you are using https")
+                })
+
+            } else {
+
+                const getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia
+
+                if (getUserMedia) {
+                    getUserMedia({video: {facingMode: "environment"}}, stream => {
+                        video.src = window.URL.createObjectURL(stream)
+                    }, err => {
+                        console.log(err)
+                        alert("There was an error accessing the camera. Please try again and ensure you are using https.")
+                    })
+                } else {
+                    alert("Camera not available")
+                }
             }
-        },
-        vertexShader: vertexShaderSource.text,
-        fragmentShader: Filters.compileShader("sobel3x3")
-    })
-    const box = new THREE.Mesh(boxGeometry, boxMaterial)
-    scene.add(box)
+        } catch (e) {
+            alert("Error getting camera feed. Please ensure you are using https.")
+        }
+    }
 
+    makeBoxObject()
 
     // Render loop
     const render = () => {
@@ -97,7 +139,7 @@ window.addEventListener("load", () => {
     }
     render()
 
-    // Do fullscreen + prevent the display from going to sleep when tapped
+    // Request fullscreen when tapped
     if (!window.location.href.includes("localhost")) {
 
         renderer.domElement.addEventListener("click", () => {
@@ -108,47 +150,15 @@ window.addEventListener("load", () => {
         })
     }
 
-
     // Resizing
     window.addEventListener("resize", () => {
         effect.setSize(window.innerWidth, window.innerHeight)
         camera.aspect = window.innerWidth / window.innerHeight
         camera.updateProjectionMatrix()
+        scene.remove(box)
+        video.pause()
+        makeBoxObject()
     })
-
-    // Start camera capture
-    try {
-        const mediaDevicesSupport = navigator.mediaDevices && navigator.mediaDevices.getUserMedia
-
-        if (mediaDevicesSupport) {
-
-            navigator.mediaDevices.getUserMedia({video: {facingMode: "environment"}}).then(stream => {
-                video.src = window.URL.createObjectURL(stream)
-                video.play()
-            }).catch(err => {
-                console.log(err)
-                alert("There was an error accessing the camera. Please try again and ensure you are using https")
-            })
-
-        } else {
-
-            const getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia
-
-            if (getUserMedia) {
-                getUserMedia({video: {facingMode: "environment"}}, stream => {
-                    video.src = window.URL.createObjectURL(stream)
-                    video.play()
-                }, err => {
-                    console.log(err)
-                    alert("There was an error accessing the camera. Please try again and ensure you are using https.")
-                })
-            } else {
-                alert("Camera not available")
-            }
-        }
-    } catch (e) {
-        alert("Error getting camera feed. Please ensure you are using https.")
-    }
 
     // =======
     //  Temporary, until the UI is implemented

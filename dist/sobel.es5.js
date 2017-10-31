@@ -10,16 +10,6 @@ var degToRad = function degToRad(x) {
 
 window.addEventListener("load", function () {
 
-    window.video = document.createElement("video");
-    video.autoplay = true;
-
-    video.width = window.innerWidth / 2;
-    video.height = window.innerHeight / 2;
-
-    var fov = 70;
-    var boxWidth = video.width;
-    var boxHeight = video.height;
-
     // Renderer and VR stuff
     var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -51,44 +41,97 @@ window.addEventListener("load", function () {
     });
 
     // Scenes and camera
+    var fov = 70;
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 1, 1000);
-    camera.position.z = 0.5 * boxWidth * Math.atan(degToRad(90 - fov / 2)) + 100;
     scene.add(camera);
 
     // Box object
-    var boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, 1);
-    var texture = new THREE.Texture(video);
-    texture.minFilter = THREE.NearestFilter;
+    var texture = void 0;
+    var boxMaterial = void 0;
+    var box = void 0;
 
-    var boxMaterial = new THREE.ShaderMaterial({
-        uniforms: {
-            texture: {
-                type: "t",
-                value: texture
+    var makeBoxObject = function makeBoxObject() {
+
+        window.video = document.createElement("video");
+        video.autoplay = true;
+        video.width = window.innerWidth / 2;
+        video.height = window.innerHeight / 2;
+        getVideoFeed();
+
+        var boxWidth = video.width;
+        var boxHeight = video.height;
+
+        var boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, 1);
+        texture = new THREE.Texture(video);
+        texture.minFilter = THREE.NearestFilter;
+
+        boxMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                texture: {
+                    type: "t",
+                    value: texture
+                },
+                width: {
+                    type: "f",
+                    value: video.width
+                },
+                height: {
+                    type: "f",
+                    value: video.height
+                },
+                radius: {
+                    type: "f",
+                    value: 0.4
+                },
+                intensity: {
+                    type: "f",
+                    value: 1.0
+                }
             },
-            width: {
-                type: "f",
-                value: video.width
-            },
-            height: {
-                type: "f",
-                value: video.height
-            },
-            radius: {
-                type: "f",
-                value: 0.4
-            },
-            intensity: {
-                type: "f",
-                value: 1.0
+            vertexShader: vertexShaderSource.text,
+            fragmentShader: Filters.compileShader("sobel3x3")
+        });
+
+        box = new THREE.Mesh(boxGeometry, boxMaterial);
+        scene.add(box);
+
+        camera.position.z = 0.5 * boxWidth * Math.atan(degToRad(90 - fov / 2)) + 100;
+    };
+
+    var getVideoFeed = function getVideoFeed() {
+        try {
+            var mediaDevicesSupport = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
+
+            if (mediaDevicesSupport) {
+
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function (stream) {
+                    video.src = window.URL.createObjectURL(stream);
+                }).catch(function (err) {
+                    console.log(err);
+                    alert("There was an error accessing the camera. Please try again and ensure you are using https");
+                });
+            } else {
+
+                var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+
+                if (getUserMedia) {
+                    getUserMedia({ video: { facingMode: "environment" } }, function (stream) {
+                        video.src = window.URL.createObjectURL(stream);
+                    }, function (err) {
+                        console.log(err);
+                        alert("There was an error accessing the camera. Please try again and ensure you are using https.");
+                    });
+                } else {
+                    alert("Camera not available");
+                }
             }
-        },
-        vertexShader: vertexShaderSource.text,
-        fragmentShader: Filters.compileShader("sobel3x3")
-    });
-    var box = new THREE.Mesh(boxGeometry, boxMaterial);
-    scene.add(box);
+        } catch (e) {
+            alert("Error getting camera feed. Please ensure you are using https.");
+        }
+    };
+
+    makeBoxObject();
 
     // Render loop
     var render = function render() {
@@ -102,7 +145,7 @@ window.addEventListener("load", function () {
     };
     render();
 
-    // Do fullscreen + prevent the display from going to sleep when tapped
+    // Request fullscreen when tapped
     if (!window.location.href.includes("localhost")) {
 
         renderer.domElement.addEventListener("click", function () {
@@ -115,40 +158,10 @@ window.addEventListener("load", function () {
         effect.setSize(window.innerWidth, window.innerHeight);
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
+        scene.remove(box);
+        video.pause();
+        makeBoxObject();
     });
-
-    // Start camera capture
-    try {
-        var mediaDevicesSupport = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
-
-        if (mediaDevicesSupport) {
-
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function (stream) {
-                video.src = window.URL.createObjectURL(stream);
-                video.play();
-            }).catch(function (err) {
-                console.log(err);
-                alert("There was an error accessing the camera. Please try again and ensure you are using https");
-            });
-        } else {
-
-            var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
-
-            if (getUserMedia) {
-                getUserMedia({ video: { facingMode: "environment" } }, function (stream) {
-                    video.src = window.URL.createObjectURL(stream);
-                    video.play();
-                }, function (err) {
-                    console.log(err);
-                    alert("There was an error accessing the camera. Please try again and ensure you are using https.");
-                });
-            } else {
-                alert("Camera not available");
-            }
-        }
-    } catch (e) {
-        alert("Error getting camera feed. Please ensure you are using https.");
-    }
 
     // =======
     //  Temporary, until the UI is implemented
