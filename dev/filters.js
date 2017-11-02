@@ -23,15 +23,12 @@ class Filters {
                     ${this[name+"Body"]}
 
                     if (intensity!=1.0) {
-                        newColour.r = newColour.r*(1.0-intensity) + pixel.r*intensity;
-                        newColour.g = newColour.g*(1.0-intensity) + pixel.g*intensity;
-                        newColour.b = newColour.b*(1.0-intensity) + pixel.b*intensity;
+                        newColour = newColour*(1.0-intensity) + pixel*intensity;
                     }
                     gl_FragColor = newColour;
 
                 } else {
-                    vec4 pixel = texture2D(texture, vUv);
-                    gl_FragColor = vec4(pixel.r, pixel.g, pixel.b, 1.0);
+                    gl_FragColor = vec4(pixel.rgb, 1.0);
                 }
             }
         `
@@ -96,8 +93,8 @@ class Filters {
                            (3.0*n[15] + 2.0*n[16] + 2.0*n[18] + 3.0*n[19] +
                             2.0*n[20] + n[21] + n[23] + n[24]);
 
-            float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0;
-            float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0;
+            float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0 / 9.0;
+            float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0 / 9.0;
             sobel_x.r = avg_x;
             sobel_x.g = avg_x;
             sobel_x.b = avg_x;
@@ -111,7 +108,7 @@ class Filters {
     static get invertedBody () {
         return `
             vec4 pixel = texture2D(texture, vUv);
-            vec4 newColour = vec4( 1.0 - pixel.r, 1.0 - pixel.g, 1.0 - pixel.b, 1.0 );
+            vec4 newColour = vec4( 1.0 - pixel.rgb, 1.0 );
         `
     }
 }
