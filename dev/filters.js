@@ -2,6 +2,10 @@
 
 class Filters {
 
+    static availableFilters () {
+        return ['sobel3x3', 'sobel5x5', 'inverted'];
+    }
+
     static compileShader (name) {
         return `
             uniform sampler2D texture;

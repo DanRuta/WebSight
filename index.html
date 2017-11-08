@@ -18,21 +18,53 @@
         margin: 0;
         overflow: hidden;
         background-color: black;
+        color: #fff;
+        font-family: Arial, Helvetica, sans-serif;
     }
-    #enterVRButton {
+
+    #controls {
+        width: 300px;
+        height: 300px;
         position: fixed;
-        height: 100px;
+        right: 0;
+        bottom: 0;
+
+        display: flex;
+        flex-flow: column wrap;
+        align-items: flex-end;
+    }
+
+    #controls > * {
+        margin-top: 5px;
+    }
+
+    #controls input,
+    #controls button {
+        cursor: pointer;
+    }
+
+    #enterVRButton {
+        height: 60px;
         width: 100px;
         cursor: pointer;
-        bottom: 0;
-        right: 0;
         background-image: url(./images/cardboard64.png);
-        background-size: contain;
+        background-size: cover;
         background-repeat: no-repeat;
+    }
+
+    .filter-button {
+        width: 100px;
+        height: 50px;
+        font-size: 1.3em;
+        border: 0;
+        background: #f1f1f1;
+        border-radius: 3px;
     }
     </style>
 </head>
 <body>
-<div id="enterVRButton"></div>
+    <div id="controls">
+        <div id="enterVRButton"></div>
+    </div>
 </body>
 </html>

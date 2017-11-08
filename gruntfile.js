@@ -5,7 +5,7 @@ module.exports = grunt => {
                 sourceMap: true
             },
             "js": {
-                src: ["dev/sobel.js", "dev/filters.js"],
+                src: ["dev/sobel.js", "dev/filters.js", "dev/ui.js"],
                 dest: "dist/sobel.concat.js"
             },
             "deps": {
