@@ -27,8 +27,11 @@ window.addEventListener('load', () => {
             effect = new THREE.StereoEffect(renderer)
             effect.separation = 0
             effect.setSize(window.innerWidth, window.innerHeight)
-            enterVRButton.style.display = 'none'
         }
+
+        // hide controls
+        const controls = document.getElementById('controls')
+        controls.style.display = 'none'
     })
 
     // Scenes and camera
