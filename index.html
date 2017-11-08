@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Sobel sight</title>
-    <meta charset="UTF-8">
-    <script src="dist/dependencies.min.js"></script>
-    <script id="vertexShaderSource" type="vertex">
+    <head>
+        <title>Sobel sight</title>
+        <meta charset="UTF-8">
+        <script src="dist/dependencies.min.js"></script>
+        <script id="vertexShaderSource" type="vertex">
         varying vec2 vUv;
 
         void main() {
@@ -12,59 +12,63 @@
            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
         }
     </script>
-    <script src="dist/sobel-sight.min.js"></script>
-    <style>
-    body {
-        margin: 0;
-        overflow: hidden;
-        background-color: black;
-        color: #fff;
-        font-family: Arial, Helvetica, sans-serif;
-    }
+        <script src="dist/sobel-sight.min.js"></script>
+        <style>
+            body {
+                margin: 0;
+                overflow: hidden;
+                background-color: black;
+                color: #fff;
+                font-family: Arial, Helvetica, sans-serif;
+            }
 
-    #controls {
-        width: 300px;
-        height: 300px;
-        position: fixed;
-        right: 0;
-        bottom: 0;
+            #controls {
+                width: 300px;
+                height: 300px;
+                position: fixed;
+                right: 0;
+                bottom: 0;
 
-        display: flex;
-        flex-flow: column wrap;
-        align-items: flex-end;
-    }
+                display: flex;
+                flex-flow: column wrap;
+                align-items: flex-end;
+            }
 
-    #controls > * {
-        margin-top: 5px;
-    }
+            #controls>* {
+                margin-top: 5px;
+            }
 
-    #controls input,
-    #controls button {
-        cursor: pointer;
-    }
+            #controls input,
+            #controls button {
+                cursor: pointer;
+            }
 
-    #enterVRButton {
-        height: 60px;
-        width: 100px;
-        cursor: pointer;
-        background-image: url(./images/cardboard64.png);
-        background-size: cover;
-        background-repeat: no-repeat;
-    }
+            #enterVRButton {
+                height: 60px;
+                width: 100px;
+                cursor: pointer;
+                background-image: url(./images/cardboard64.png);
+                background-size: cover;
+                background-repeat: no-repeat;
+            }
 
-    .filter-button {
-        width: 100px;
-        height: 50px;
-        font-size: 1.3em;
-        border: 0;
-        background: #f1f1f1;
-        border-radius: 3px;
-    }
-    </style>
-</head>
-<body>
-    <div id="controls">
-        <div id="enterVRButton"></div>
-    </div>
-</body>
+            .filter-button {
+                width: 100px;
+                height: 50px;
+                font-size: 1.3em;
+                border: 0;
+                background: #f1f1f1;
+                border-radius: 3px;
+            }
+
+            .filter-button:disabled {
+                opacity: 0.5;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="controls">
+            <div id="enterVRButton"></div>
+        </div>
+    </body>
 </html>

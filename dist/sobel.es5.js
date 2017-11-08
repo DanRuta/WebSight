@@ -233,6 +233,10 @@ var Filters = function () {
 window.addEventListener('load', function () {
     var filters = Filters.availableFilters();
     var filterRoot = document.getElementById('controls');
+    var initialFilter = 'sobel3x3';
+    var filterButtons = [];
+
+    window.setShader(initialFilter);
 
     // create filter buttons
     filters.forEach(function (filter) {
@@ -241,7 +245,10 @@ window.addEventListener('load', function () {
         button.innerText = filter;
         button.classList.add('filter-button');
 
+        if (filter === initialFilter) button.disabled = true;
+
         filterRoot.appendChild(button);
+        filterButtons.push(button);
     });
 
     // radius slider
@@ -290,7 +297,14 @@ window.addEventListener('load', function () {
     document.addEventListener('click', function (_ref) {
         var target = _ref.target;
 
-        if (target.dataset.filter) window.setShader(target.dataset.filter);
+        if (target.dataset.filter) {
+            window.setShader(target.dataset.filter);
+
+            filterButtons.forEach(function (button) {
+                button.disabled = false;
+            });
+            target.disabled = true;
+        }
     });
 
     radiusSlider.addEventListener('change', function (_ref2) {

@@ -1,6 +1,10 @@
 window.addEventListener('load', () => {
     const filters = Filters.availableFilters()
     const filterRoot = document.getElementById('controls')
+    const initialFilter = 'sobel3x3'
+    const filterButtons = []
+
+    window.setShader(initialFilter)
 
     // create filter buttons
     filters.forEach(filter => {
@@ -9,7 +13,10 @@ window.addEventListener('load', () => {
         button.innerText = filter
         button.classList.add('filter-button')
 
+        if (filter === initialFilter) button.disabled = true
+
         filterRoot.appendChild(button)
+        filterButtons.push(button)
     })
 
     // radius slider
@@ -56,7 +63,14 @@ window.addEventListener('load', () => {
 
     // events
     document.addEventListener('click', ({ target }) => {
-        if (target.dataset.filter) window.setShader(target.dataset.filter)
+        if (target.dataset.filter) {
+            window.setShader(target.dataset.filter)
+
+            filterButtons.forEach(button => {
+                button.disabled = false
+            })
+            target.disabled = true
+        }
     })
 
     radiusSlider.addEventListener('change', ({ target }) => {
