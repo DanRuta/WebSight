@@ -492,12 +492,12 @@ window.addEventListener('load', () => {
         }
     })
 
-    radiusSlider.addEventListener('change', ({ target }) => {
+    radiusSlider.addEventListener('mousemove', ({ target }) => {
         window.setRadius(target.value / 100)
         radiusValue.innerText = `${target.value}%`
     })
 
-    intensitySlider.addEventListener('change', ({ target }) => {
+    intensitySlider.addEventListener('mousemove', ({ target }) => {
         window.setIntensity(target.value === '0' ? 0.01 : target.value / 100)
         intensityValue.innerText = `${target.value}%`
     })

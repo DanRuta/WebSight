@@ -327,14 +327,14 @@ window.addEventListener('load', function () {
         }
     });
 
-    radiusSlider.addEventListener('change', function (_ref2) {
+    radiusSlider.addEventListener('mousemove', function (_ref2) {
         var target = _ref2.target;
 
         window.setRadius(target.value / 100);
         radiusValue.innerText = target.value + '%';
     });
 
-    intensitySlider.addEventListener('change', function (_ref3) {
+    intensitySlider.addEventListener('mousemove', function (_ref3) {
         var target = _ref3.target;
 
         window.setIntensity(target.value === '0' ? 0.01 : target.value / 100);
