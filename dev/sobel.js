@@ -2,12 +2,12 @@
 
 const degToRad = x => x * Math.PI / 180
 
-window.addEventListener('load', () => {
+window.addEventListener("load", () => {
     // Renderer and VR stuff
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     renderer.setSize(window.innerWidth, window.innerHeight)
     document.body.appendChild(renderer.domElement)
-    renderer.domElement.style.backgroundColor = 'black'
+    renderer.domElement.style.backgroundColor = "black"
 
     let effect = new THREE.VREffect(renderer)
     effect.separation = 0
@@ -20,8 +20,8 @@ window.addEventListener('load', () => {
     }
 
     // Button to enable VR mode
-    enterVRButton.addEventListener('click', () => {
-        if (navigator.userAgent.includes('Mobile VR')) {
+    enterVRButton.addEventListener("click", () => {
+        if (navigator.userAgent.includes("Mobile VR")) {
             vrDisplay.requestPresent([{ source: renderer.domElement }])
         } else {
             effect = new THREE.StereoEffect(renderer)
@@ -30,8 +30,8 @@ window.addEventListener('load', () => {
         }
 
         // Hide controls
-        const controls = document.getElementById('controls')
-        controls.style.display = 'none'
+        const controls = document.getElementById("controls")
+        controls.style.display = "none"
     })
 
     // Scenes and camera
@@ -46,7 +46,7 @@ window.addEventListener('load', () => {
     let box
 
     const makeBoxObject = () => {
-        window.video = document.createElement('video')
+        window.video = document.createElement("video")
         video.autoplay = true
         video.width = window.innerWidth / 2
         video.height = window.innerHeight / 2
@@ -62,28 +62,28 @@ window.addEventListener('load', () => {
         boxMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 texture: {
-                    type: 't',
+                    type: "t",
                     value: texture
                 },
                 width: {
-                    type: 'f',
+                    type: "f",
                     value: video.width
                 },
                 height: {
-                    type: 'f',
+                    type: "f",
                     value: video.height
                 },
                 radius: {
-                    type: 'f',
+                    type: "f",
                     value: 0.4
                 },
                 intensity: {
-                    type: 'f',
+                    type: "f",
                     value: 1.0
                 }
             },
             vertexShader: vertexShaderSource.text,
-            fragmentShader: Filters.compileShader('sobel3x3')
+            fragmentShader: Filters.compileShader("sobel3x3")
         })
 
         box = new THREE.Mesh(boxGeometry, boxMaterial)
@@ -98,14 +98,14 @@ window.addEventListener('load', () => {
 
             if (mediaDevicesSupport) {
                 navigator.mediaDevices
-                    .getUserMedia({ video: { facingMode: 'environment' } })
+                    .getUserMedia({ video: { facingMode: "environment" } })
                     .then(stream => {
                         video.src = window.URL.createObjectURL(stream)
                     })
                     .catch(err => {
                         console.log(err)
                         alert(
-                            'There was an error accessing the camera. Please try again and ensure you are using https'
+                            "There was an error accessing the camera. Please try again and ensure you are using https"
                         )
                     })
             } else {
@@ -117,23 +117,23 @@ window.addEventListener('load', () => {
 
                 if (getUserMedia) {
                     getUserMedia(
-                        { video: { facingMode: 'environment' } },
+                        { video: { facingMode: "environment" } },
                         stream => {
                             video.src = window.URL.createObjectURL(stream)
                         },
                         err => {
                             console.log(err)
                             alert(
-                                'There was an error accessing the camera. Please try again and ensure you are using https.'
+                                "There was an error accessing the camera. Please try again and ensure you are using https."
                             )
                         }
                     )
                 } else {
-                    alert('Camera not available')
+                    alert("Camera not available")
                 }
             }
         } catch (e) {
-            alert('Error getting camera feed. Please ensure you are using https.')
+            alert("Error getting camera feed. Please ensure you are using https.")
         }
     }
 
@@ -152,8 +152,8 @@ window.addEventListener('load', () => {
     render()
 
     // Request fullscreen when tapped
-    if (!window.location.href.includes('localhost')) {
-        renderer.domElement.addEventListener('click', () => {
+    if (!window.location.href.includes("localhost")) {
+        renderer.domElement.addEventListener("click", () => {
             document.fullscreenEnabled && renderer.domElement.requestFullScreen() ||
             document.webkitFullscreenEnabled && renderer.domElement.webkitRequestFullScreen() ||
             document.mozFullScreenEnabled && renderer.domElement.mozRequestFullScreen() ||
@@ -162,7 +162,7 @@ window.addEventListener('load', () => {
     }
 
     // Resizing
-    window.addEventListener('resize', () => {
+    window.addEventListener("resize", () => {
         effect.setSize(window.innerWidth, window.innerHeight)
         camera.aspect = window.innerWidth / window.innerHeight
         camera.updateProjectionMatrix()

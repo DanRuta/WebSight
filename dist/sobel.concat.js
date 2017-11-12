@@ -2,12 +2,12 @@
 
 const degToRad = x => x * Math.PI / 180
 
-window.addEventListener('load', () => {
+window.addEventListener("load", () => {
     // Renderer and VR stuff
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     renderer.setSize(window.innerWidth, window.innerHeight)
     document.body.appendChild(renderer.domElement)
-    renderer.domElement.style.backgroundColor = 'black'
+    renderer.domElement.style.backgroundColor = "black"
 
     let effect = new THREE.VREffect(renderer)
     effect.separation = 0
@@ -20,8 +20,8 @@ window.addEventListener('load', () => {
     }
 
     // Button to enable VR mode
-    enterVRButton.addEventListener('click', () => {
-        if (navigator.userAgent.includes('Mobile VR')) {
+    enterVRButton.addEventListener("click", () => {
+        if (navigator.userAgent.includes("Mobile VR")) {
             vrDisplay.requestPresent([{ source: renderer.domElement }])
         } else {
             effect = new THREE.StereoEffect(renderer)
@@ -30,8 +30,8 @@ window.addEventListener('load', () => {
         }
 
         // Hide controls
-        const controls = document.getElementById('controls')
-        controls.style.display = 'none'
+        const controls = document.getElementById("controls")
+        controls.style.display = "none"
     })
 
     // Scenes and camera
@@ -46,7 +46,7 @@ window.addEventListener('load', () => {
     let box
 
     const makeBoxObject = () => {
-        window.video = document.createElement('video')
+        window.video = document.createElement("video")
         video.autoplay = true
         video.width = window.innerWidth / 2
         video.height = window.innerHeight / 2
@@ -62,28 +62,28 @@ window.addEventListener('load', () => {
         boxMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 texture: {
-                    type: 't',
+                    type: "t",
                     value: texture
                 },
                 width: {
-                    type: 'f',
+                    type: "f",
                     value: video.width
                 },
                 height: {
-                    type: 'f',
+                    type: "f",
                     value: video.height
                 },
                 radius: {
-                    type: 'f',
+                    type: "f",
                     value: 0.4
                 },
                 intensity: {
-                    type: 'f',
+                    type: "f",
                     value: 1.0
                 }
             },
             vertexShader: vertexShaderSource.text,
-            fragmentShader: Filters.compileShader('sobel3x3')
+            fragmentShader: Filters.compileShader("sobel3x3")
         })
 
         box = new THREE.Mesh(boxGeometry, boxMaterial)
@@ -98,14 +98,14 @@ window.addEventListener('load', () => {
 
             if (mediaDevicesSupport) {
                 navigator.mediaDevices
-                    .getUserMedia({ video: { facingMode: 'environment' } })
+                    .getUserMedia({ video: { facingMode: "environment" } })
                     .then(stream => {
                         video.src = window.URL.createObjectURL(stream)
                     })
                     .catch(err => {
                         console.log(err)
                         alert(
-                            'There was an error accessing the camera. Please try again and ensure you are using https'
+                            "There was an error accessing the camera. Please try again and ensure you are using https"
                         )
                     })
             } else {
@@ -117,23 +117,23 @@ window.addEventListener('load', () => {
 
                 if (getUserMedia) {
                     getUserMedia(
-                        { video: { facingMode: 'environment' } },
+                        { video: { facingMode: "environment" } },
                         stream => {
                             video.src = window.URL.createObjectURL(stream)
                         },
                         err => {
                             console.log(err)
                             alert(
-                                'There was an error accessing the camera. Please try again and ensure you are using https.'
+                                "There was an error accessing the camera. Please try again and ensure you are using https."
                             )
                         }
                     )
                 } else {
-                    alert('Camera not available')
+                    alert("Camera not available")
                 }
             }
         } catch (e) {
-            alert('Error getting camera feed. Please ensure you are using https.')
+            alert("Error getting camera feed. Please ensure you are using https.")
         }
     }
 
@@ -152,8 +152,8 @@ window.addEventListener('load', () => {
     render()
 
     // Request fullscreen when tapped
-    if (!window.location.href.includes('localhost')) {
-        renderer.domElement.addEventListener('click', () => {
+    if (!window.location.href.includes("localhost")) {
+        renderer.domElement.addEventListener("click", () => {
             document.fullscreenEnabled && renderer.domElement.requestFullScreen() ||
             document.webkitFullscreenEnabled && renderer.domElement.webkitRequestFullScreen() ||
             document.mozFullScreenEnabled && renderer.domElement.mozRequestFullScreen() ||
@@ -162,7 +162,7 @@ window.addEventListener('load', () => {
     }
 
     // Resizing
-    window.addEventListener('resize', () => {
+    window.addEventListener("resize", () => {
         effect.setSize(window.innerWidth, window.innerHeight)
         camera.aspect = window.innerWidth / window.innerHeight
         camera.updateProjectionMatrix()
@@ -219,10 +219,7 @@ class Filters {
 
                     ${this[name+"Body"]}
 
-                    if (intensity!=1.0) {
-                        newColour = newColour*(1.0-intensity) + pixel*intensity;
-                    }
-                    gl_FragColor = newColour;
+                    gl_FragColor = newColour*(1.0-intensity) + pixel*intensity;;
 
                 } else {
                     gl_FragColor = vec4(pixel.rgb, 1.0);
@@ -419,20 +416,20 @@ class Filters {
 }
 "use strict"
 
-window.addEventListener('load', () => {
+window.addEventListener("load", () => {
     const filters = Filters.availableFilters
-    const filterRoot = document.getElementById('controls')
-    const initialFilter = window.localStorage.getItem("filter") || 'sobel3x3'
+    const filterRoot = document.getElementById("controls")
+    const initialFilter = window.localStorage.getItem("filter") || "sobel3x3"
     const filterButtons = []
 
     window.setShader(initialFilter)
 
     // Create filter buttons
     filters.forEach(filter => {
-        const button = document.createElement('button')
+        const button = document.createElement("button")
         button.dataset.filter = filter
         button.innerText = filter
-        button.classList.add('filter-button')
+        button.classList.add("filter-button")
 
         if (filter === initialFilter) button.disabled = true
 
@@ -441,9 +438,9 @@ window.addEventListener('load', () => {
     })
 
     // Radius slider
-    const radiusSlider = document.createElement('input')
-    radiusSlider.type = 'range'
-    radiusSlider.name = 'radius'
+    const radiusSlider = document.createElement("input")
+    radiusSlider.type = "range"
+    radiusSlider.name = "radius"
     radiusSlider.value = parseInt(window.localStorage.getItem("radius")) || 50
     radiusSlider.min = 0
     radiusSlider.max = 100
@@ -451,41 +448,41 @@ window.addEventListener('load', () => {
     window.setRadius(radiusSlider.value / 100)
 
     // Radius slider label
-    const radiusLabel = document.createElement('label')
-    radiusLabel.for = 'radius'
-    radiusLabel.innerText = 'Radius: '
+    const radiusLabel = document.createElement("label")
+    radiusLabel.for = "radius"
+    radiusLabel.innerText = "Radius: "
 
     // Radius slider value
-    const radiusValue = document.createElement('span')
-    radiusValue.innerText = '50%'
+    const radiusValue = document.createElement("span")
+    radiusValue.innerText = "50%"
 
     radiusLabel.appendChild(radiusSlider)
     radiusLabel.appendChild(radiusValue)
     filterRoot.appendChild(radiusLabel)
 
     // Intensity slider
-    const intensitySlider = document.createElement('input')
-    intensitySlider.type = 'range'
-    intensitySlider.name = 'intensity'
+    const intensitySlider = document.createElement("input")
+    intensitySlider.type = "range"
+    intensitySlider.name = "intensity"
     intensitySlider.value = parseInt(window.localStorage.getItem("intensity")) || 100
     intensitySlider.min = 0
     intensitySlider.max = 100
     intensitySlider.step = 1
-    window.setIntensity(intensitySlider.value === '0' ? 0.01 : intensitySlider.value / 100)
+    window.setIntensity(intensitySlider.value === "0" ? 0.01 : intensitySlider.value / 100)
 
-    const intensityLabel = document.createElement('label')
-    intensityLabel.for = 'intensity'
-    intensityLabel.innerText = 'Intensity: '
+    const intensityLabel = document.createElement("label")
+    intensityLabel.for = "intensity"
+    intensityLabel.innerText = "Intensity: "
 
-    const intensityValue = document.createElement('span')
-    intensityValue.innerText = '100%'
+    const intensityValue = document.createElement("span")
+    intensityValue.innerText = "100%"
 
     intensityLabel.appendChild(intensitySlider)
     intensityLabel.appendChild(intensityValue)
     filterRoot.appendChild(intensityLabel)
 
     // Events
-    document.addEventListener('click', ({ target }) => {
+    document.addEventListener("click", ({ target }) => {
         if (target.dataset.filter) {
             window.setShader(target.dataset.filter)
 
@@ -497,14 +494,14 @@ window.addEventListener('load', () => {
         }
     })
 
-    radiusSlider.addEventListener('mousemove', ({ target }) => {
+    radiusSlider.addEventListener("mousemove", ({ target }) => {
         window.setRadius(target.value / 100)
         radiusValue.innerText = `${target.value}%`
         window.localStorage.setItem("radius", target.value)
     })
 
-    intensitySlider.addEventListener('mousemove', ({ target }) => {
-        window.setIntensity(target.value === '0' ? 0.01 : target.value / 100)
+    intensitySlider.addEventListener("mousemove", ({ target }) => {
+        window.setIntensity(target.value === "0" ? 0.01 : target.value / 100)
         intensityValue.innerText = `${target.value}%`
         window.localStorage.setItem("intensity", target.value)
     })

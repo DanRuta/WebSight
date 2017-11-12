@@ -30,10 +30,7 @@ class Filters {
 
                     ${this[name+"Body"]}
 
-                    if (intensity!=1.0) {
-                        newColour = newColour*(1.0-intensity) + pixel*intensity;
-                    }
-                    gl_FragColor = newColour;
+                    gl_FragColor = newColour*(1.0-intensity) + pixel*intensity;;
 
                 } else {
                     gl_FragColor = vec4(pixel.rgb, 1.0);

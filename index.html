@@ -3,15 +3,16 @@
     <head>
         <title>Sobel sight</title>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
         <script src="dist/dependencies.min.js"></script>
         <script id="vertexShaderSource" type="vertex">
-        varying vec2 vUv;
+            varying vec2 vUv;
 
-        void main() {
-           vUv = uv;
-           gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-        }
-    </script>
+            void main() {
+               vUv = uv;
+               gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+            }
+        </script>
         <script src="dist/sobel-sight.min.js"></script>
         <style>
             body {
@@ -50,6 +51,7 @@
                 background-image: url(./images/cardboard64.png);
                 background-size: cover;
                 background-repeat: no-repeat;
+                filter: drop-shadow(0 5px 5px black);
             }
 
             .filter-button {
