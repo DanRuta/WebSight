@@ -29,7 +29,6 @@ window.addEventListener("load", () => {
     radiusSlider.min = 0
     radiusSlider.max = 100
     radiusSlider.step = 1
-    window.setRadius(radiusSlider.value / 100)
 
     // Radius slider label
     const radiusLabel = document.createElement("label")
@@ -52,7 +51,6 @@ window.addEventListener("load", () => {
     intensitySlider.min = 0
     intensitySlider.max = 100
     intensitySlider.step = 1
-    window.setIntensity(intensitySlider.value === "0" ? 0.01 : intensitySlider.value / 100)
 
     const intensityLabel = document.createElement("label")
     intensityLabel.for = "intensity"
@@ -78,15 +76,23 @@ window.addEventListener("load", () => {
         }
     })
 
-    radiusSlider.addEventListener("mousemove", ({ target }) => {
+    const updateRadius = ({ target }) => {
         window.setRadius(target.value / 100)
         radiusValue.innerText = `${target.value}%`
         window.localStorage.setItem("radius", target.value)
-    })
+    }
+    updateRadius({target: radiusSlider})
 
-    intensitySlider.addEventListener("mousemove", ({ target }) => {
+    radiusSlider.addEventListener("change", updateRadius)
+    radiusSlider.addEventListener("mousemove", updateRadius)
+
+    const updateIntensity = ({ target }) => {
         window.setIntensity(target.value === "0" ? 0.01 : target.value / 100)
         intensityValue.innerText = `${target.value}%`
         window.localStorage.setItem("intensity", target.value)
-    })
+    }
+    updateIntensity({target: intensitySlider})
+
+    intensitySlider.addEventListener("mousemove", updateIntensity)
+    intensitySlider.addEventListener("change", updateIntensity)
 })
