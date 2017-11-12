@@ -5,8 +5,8 @@ module.exports = grunt => {
                 sourceMap: true
             },
             "js": {
-                src: ["dev/sobel.js", "dev/filters.js", "dev/ui.js"],
-                dest: "dist/sobel.concat.js"
+                src: ["dev/websight.js", "dev/filters.js", "dev/ui.js"],
+                dest: "dist/websight.concat.js"
             },
             "deps": {
                 src: ["lib/*.js", "!lib/three.min.js"],
@@ -20,7 +20,7 @@ module.exports = grunt => {
             },
             dist: {
                 files: {
-                    "dist/sobel.es5.js": ["dist/sobel.concat.js"]
+                    "dist/websight.es5.js": ["dist/websight.concat.js"]
                 }
             }
         },
@@ -32,7 +32,7 @@ module.exports = grunt => {
                     mangle: false,
                 },
                 files: {
-                    "dist/sobel-sight.min.js" : ["dist/sobel.es5.js"],
+                    "dist/websight.min.js" : ["dist/websight.es5.js"],
                     // "dist/dependencies.min.js" : ["lib/three.min.js", "dist/dependencies.concat.js"]
                 }
             }

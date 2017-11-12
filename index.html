@@ -1,9 +1,16 @@
 <!DOCTYPE html>
+<html lang="en">
 <html>
-    <head>
-        <title>Sobel sight</title>
+    <head manifest="manifest.json">
+        <title>Websight</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+        <link rel="canonical" href="https://websight.danruta.co.uk">
+        <meta name="keywords" content="WebSight, sobel, frei-chen, edge, detection, visually, impaired, accessibility, VR, virtual, reality, AR, augmented, reality, WebGL, shaders, WebVR">
+        <meta name="description" content="WebSight - Browser based real time VR video pass-through augmenting via WebGL shaders such as edge detection, to aid the visually impaired.">
+        <meta name="theme-color" content="#000000">
+        <link rel="manifest" href="./manifest.json">
+        <meta http-equiv="MSThemeCompatible">
         <script src="dist/dependencies.min.js"></script>
         <script id="vertexShaderSource" type="vertex">
             varying vec2 vUv;
@@ -13,7 +20,7 @@
                gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
             }
         </script>
-        <script src="dist/sobel-sight.min.js"></script>
+        <script src="dist/websight.min.js"></script>
         <style>
             body {
                 margin: 0;
@@ -73,4 +80,12 @@
             <div id="enterVRButton"></div>
         </div>
     </body>
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
+    <script>
+        if ("serviceworker" in navigator) {
+            navigator.serviceWorker.register("/sw.js")
+            .then(function(reg){reg.active&&console.log("SW active")})
+            .catch(function(e){console.log("SW Error:",e)})
+        }
+    </script>
 </html>

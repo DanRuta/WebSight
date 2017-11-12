@@ -507,4 +507,4 @@ window.addEventListener("load", () => {
     })
 })
 
-//# sourceMappingURL=sobel.concat.js.map
+//# sourceMappingURL=websight.concat.js.map
