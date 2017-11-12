@@ -1,9 +1,9 @@
 "use strict"
 
 window.addEventListener('load', () => {
-    const filters = Filters.availableFilters()
+    const filters = Filters.availableFilters
     const filterRoot = document.getElementById('controls')
-    const initialFilter = 'sobel3x3'
+    const initialFilter = window.localStorage.getItem("filter") || 'sobel3x3'
     const filterButtons = []
 
     window.setShader(initialFilter)
@@ -25,10 +25,11 @@ window.addEventListener('load', () => {
     const radiusSlider = document.createElement('input')
     radiusSlider.type = 'range'
     radiusSlider.name = 'radius'
-    radiusSlider.value = 50
+    radiusSlider.value = parseInt(window.localStorage.getItem("radius")) || 50
     radiusSlider.min = 0
     radiusSlider.max = 100
     radiusSlider.step = 1
+    window.setRadius(radiusSlider.value / 100)
 
     // Radius slider label
     const radiusLabel = document.createElement('label')
@@ -47,10 +48,11 @@ window.addEventListener('load', () => {
     const intensitySlider = document.createElement('input')
     intensitySlider.type = 'range'
     intensitySlider.name = 'intensity'
-    intensitySlider.value = 100
+    intensitySlider.value = parseInt(window.localStorage.getItem("intensity")) || 100
     intensitySlider.min = 0
     intensitySlider.max = 100
     intensitySlider.step = 1
+    window.setIntensity(intensitySlider.value === '0' ? 0.01 : intensitySlider.value / 100)
 
     const intensityLabel = document.createElement('label')
     intensityLabel.for = 'intensity'
@@ -72,16 +74,19 @@ window.addEventListener('load', () => {
                 button.disabled = false
             })
             target.disabled = true
+            window.localStorage.setItem("filter", target.dataset.filter)
         }
     })
 
     radiusSlider.addEventListener('mousemove', ({ target }) => {
         window.setRadius(target.value / 100)
         radiusValue.innerText = `${target.value}%`
+        window.localStorage.setItem("radius", target.value)
     })
 
     intensitySlider.addEventListener('mousemove', ({ target }) => {
         window.setIntensity(target.value === '0' ? 0.01 : target.value / 100)
         intensityValue.innerText = `${target.value}%`
+        window.localStorage.setItem("intensity", target.value)
     })
 })

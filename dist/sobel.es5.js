@@ -185,16 +185,6 @@ var Filters = function () {
     }
 
     _createClass(Filters, null, [{
-        key: 'availableFilters',
-        value: function availableFilters() {
-            // return ['sobel3x3', 'sobel5x5', 'inverted', "freichen256"];
-            return Object.getOwnPropertyNames(Filters).filter(function (m) {
-                return m.includes("Body");
-            }).map(function (m) {
-                return m.replace("Body", "");
-            });
-        }
-    }, {
         key: 'compileShader',
         value: function compileShader(name) {
             return '\n            uniform sampler2D texture;\n            uniform float width;\n            uniform float height;\n            uniform float radius;\n            uniform float intensity;\n            uniform vec2 resolution;\n            varying vec2 vUv;\n\n            void main() {\n\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n\n                vec4 pixel = texture2D(texture, vUv);\n\n                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < radius) {\n\n                    ' + this[name + "Body"] + '\n\n                    if (intensity!=1.0) {\n                        newColour = newColour*(1.0-intensity) + pixel*intensity;\n                    }\n                    gl_FragColor = newColour;\n\n                } else {\n                    gl_FragColor = vec4(pixel.rgb, 1.0);\n                }\n            }\n        ';
@@ -206,6 +196,16 @@ var Filters = function () {
         1   0   -1
         */
 
+    }, {
+        key: 'availableFilters',
+        get: function get() {
+            // return ['sobel3x3', 'sobel5x5', 'inverted', "freichen256"];
+            return Object.getOwnPropertyNames(Filters).filter(function (m) {
+                return m.includes("Body");
+            }).map(function (m) {
+                return m.replace("Body", "");
+            });
+        }
     }, {
         key: 'sobel3x3Body',
         get: function get() {
@@ -253,9 +253,9 @@ var Filters = function () {
 "use strict";
 
 window.addEventListener('load', function () {
-    var filters = Filters.availableFilters();
+    var filters = Filters.availableFilters;
     var filterRoot = document.getElementById('controls');
-    var initialFilter = 'sobel3x3';
+    var initialFilter = window.localStorage.getItem("filter") || 'sobel3x3';
     var filterButtons = [];
 
     window.setShader(initialFilter);
@@ -277,10 +277,11 @@ window.addEventListener('load', function () {
     var radiusSlider = document.createElement('input');
     radiusSlider.type = 'range';
     radiusSlider.name = 'radius';
-    radiusSlider.value = 50;
+    radiusSlider.value = parseInt(window.localStorage.getItem("radius")) || 50;
     radiusSlider.min = 0;
     radiusSlider.max = 100;
     radiusSlider.step = 1;
+    window.setRadius(radiusSlider.value / 100);
 
     // Radius slider label
     var radiusLabel = document.createElement('label');
@@ -299,10 +300,11 @@ window.addEventListener('load', function () {
     var intensitySlider = document.createElement('input');
     intensitySlider.type = 'range';
     intensitySlider.name = 'intensity';
-    intensitySlider.value = 100;
+    intensitySlider.value = parseInt(window.localStorage.getItem("intensity")) || 100;
     intensitySlider.min = 0;
     intensitySlider.max = 100;
     intensitySlider.step = 1;
+    window.setIntensity(intensitySlider.value === '0' ? 0.01 : intensitySlider.value / 100);
 
     var intensityLabel = document.createElement('label');
     intensityLabel.for = 'intensity';
@@ -326,6 +328,7 @@ window.addEventListener('load', function () {
                 button.disabled = false;
             });
             target.disabled = true;
+            window.localStorage.setItem("filter", target.dataset.filter);
         }
     });
 
@@ -334,6 +337,7 @@ window.addEventListener('load', function () {
 
         window.setRadius(target.value / 100);
         radiusValue.innerText = target.value + '%';
+        window.localStorage.setItem("radius", target.value);
     });
 
     intensitySlider.addEventListener('mousemove', function (_ref3) {
@@ -341,6 +345,7 @@ window.addEventListener('load', function () {
 
         window.setIntensity(target.value === '0' ? 0.01 : target.value / 100);
         intensityValue.innerText = target.value + '%';
+        window.localStorage.setItem("intensity", target.value);
     });
 });
 

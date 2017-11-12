@@ -2,7 +2,7 @@
 
 class Filters {
 
-    static availableFilters () {
+    static get availableFilters () {
         // return ['sobel3x3', 'sobel5x5', 'inverted', "freichen256"];
         return Object.getOwnPropertyNames(Filters)
             .filter(m => m.includes("Body"))
