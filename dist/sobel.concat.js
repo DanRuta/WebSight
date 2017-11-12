@@ -1,4 +1,4 @@
-'use strict'
+"use strict"
 
 const degToRad = x => x * Math.PI / 180
 
@@ -29,7 +29,7 @@ window.addEventListener('load', () => {
             effect.setSize(window.innerWidth, window.innerHeight)
         }
 
-        // hide controls
+        // Hide controls
         const controls = document.getElementById('controls')
         controls.style.display = 'none'
     })
@@ -154,10 +154,10 @@ window.addEventListener('load', () => {
     // Request fullscreen when tapped
     if (!window.location.href.includes('localhost')) {
         renderer.domElement.addEventListener('click', () => {
-            ;(document.fullscreenEnabled && renderer.domElement.requestFullScreen()) ||
-                (document.webkitFullscreenEnabled && renderer.domElement.webkitRequestFullScreen()) ||
-                (document.mozFullScreenEnabled && renderer.domElement.mozRequestFullScreen()) ||
-                (document.msFullScreenEnabled && renderer.domElement.msRequestFullScreen())
+            document.fullscreenEnabled && renderer.domElement.requestFullScreen() ||
+            document.webkitFullscreenEnabled && renderer.domElement.webkitRequestFullScreen() ||
+            document.mozFullScreenEnabled && renderer.domElement.mozRequestFullScreen() ||
+            document.msFullScreenEnabled && renderer.domElement.msRequestFullScreen()
         })
     }
 
@@ -417,6 +417,8 @@ class Filters {
         `
     }
 }
+"use strict"
+
 window.addEventListener('load', () => {
     const filters = Filters.availableFilters()
     const filterRoot = document.getElementById('controls')
@@ -425,7 +427,7 @@ window.addEventListener('load', () => {
 
     window.setShader(initialFilter)
 
-    // create filter buttons
+    // Create filter buttons
     filters.forEach(filter => {
         const button = document.createElement('button')
         button.dataset.filter = filter
@@ -438,7 +440,7 @@ window.addEventListener('load', () => {
         filterButtons.push(button)
     })
 
-    // radius slider
+    // Radius slider
     const radiusSlider = document.createElement('input')
     radiusSlider.type = 'range'
     radiusSlider.name = 'radius'
@@ -447,12 +449,12 @@ window.addEventListener('load', () => {
     radiusSlider.max = 100
     radiusSlider.step = 1
 
-    // radius slider label
+    // Radius slider label
     const radiusLabel = document.createElement('label')
     radiusLabel.for = 'radius'
     radiusLabel.innerText = 'Radius: '
 
-    // radius slider value
+    // Radius slider value
     const radiusValue = document.createElement('span')
     radiusValue.innerText = '50%'
 
@@ -460,7 +462,7 @@ window.addEventListener('load', () => {
     radiusLabel.appendChild(radiusValue)
     filterRoot.appendChild(radiusLabel)
 
-    // intensity slider
+    // Intensity slider
     const intensitySlider = document.createElement('input')
     intensitySlider.type = 'range'
     intensitySlider.name = 'intensity'
@@ -480,7 +482,7 @@ window.addEventListener('load', () => {
     intensityLabel.appendChild(intensityValue)
     filterRoot.appendChild(intensityLabel)
 
-    // events
+    // Events
     document.addEventListener('click', ({ target }) => {
         if (target.dataset.filter) {
             window.setShader(target.dataset.filter)

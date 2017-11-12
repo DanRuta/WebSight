@@ -2,7 +2,9 @@
   "name": "sobel-sight",
   "version": "1.0.0",
   "description": "Browser based real time edge detection in VR video pass-through, for the visually impaired",
-  "scripts": {},
+  "scripts": {
+    "lint": "eslint dev/*.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/DanRuta/sobel-sight.git"
@@ -27,6 +29,7 @@
     "grunt-cli": "^1.2.0",
     "grunt-contrib-concat": "^1.0.1",
     "grunt-contrib-uglify": "git://github.com/gruntjs/grunt-contrib-uglify.git#harmony",
-    "grunt-contrib-watch": "^1.0.0"
+    "grunt-contrib-watch": "^1.0.0",
+    "eslint": "^4.11.0"
   }
 }

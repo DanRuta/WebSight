@@ -1,4 +1,4 @@
-'use strict'
+"use strict"
 
 const degToRad = x => x * Math.PI / 180
 
@@ -29,7 +29,7 @@ window.addEventListener('load', () => {
             effect.setSize(window.innerWidth, window.innerHeight)
         }
 
-        // hide controls
+        // Hide controls
         const controls = document.getElementById('controls')
         controls.style.display = 'none'
     })
@@ -154,10 +154,10 @@ window.addEventListener('load', () => {
     // Request fullscreen when tapped
     if (!window.location.href.includes('localhost')) {
         renderer.domElement.addEventListener('click', () => {
-            ;(document.fullscreenEnabled && renderer.domElement.requestFullScreen()) ||
-                (document.webkitFullscreenEnabled && renderer.domElement.webkitRequestFullScreen()) ||
-                (document.mozFullScreenEnabled && renderer.domElement.mozRequestFullScreen()) ||
-                (document.msFullScreenEnabled && renderer.domElement.msRequestFullScreen())
+            document.fullscreenEnabled && renderer.domElement.requestFullScreen() ||
+            document.webkitFullscreenEnabled && renderer.domElement.webkitRequestFullScreen() ||
+            document.mozFullScreenEnabled && renderer.domElement.mozRequestFullScreen() ||
+            document.msFullScreenEnabled && renderer.domElement.msRequestFullScreen()
         })
     }
 

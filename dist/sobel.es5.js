@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -37,7 +37,7 @@ window.addEventListener('load', function () {
             effect.setSize(window.innerWidth, window.innerHeight);
         }
 
-        // hide controls
+        // Hide controls
         var controls = document.getElementById('controls');
         controls.style.display = 'none';
     });
@@ -147,7 +147,7 @@ window.addEventListener('load', function () {
     // Request fullscreen when tapped
     if (!window.location.href.includes('localhost')) {
         renderer.domElement.addEventListener('click', function () {
-            ;document.fullscreenEnabled && renderer.domElement.requestFullScreen() || document.webkitFullscreenEnabled && renderer.domElement.webkitRequestFullScreen() || document.mozFullScreenEnabled && renderer.domElement.mozRequestFullScreen() || document.msFullScreenEnabled && renderer.domElement.msRequestFullScreen();
+            document.fullscreenEnabled && renderer.domElement.requestFullScreen() || document.webkitFullscreenEnabled && renderer.domElement.webkitRequestFullScreen() || document.mozFullScreenEnabled && renderer.domElement.mozRequestFullScreen() || document.msFullScreenEnabled && renderer.domElement.msRequestFullScreen();
         });
     }
 
@@ -250,6 +250,8 @@ var Filters = function () {
     return Filters;
 }();
 
+"use strict";
+
 window.addEventListener('load', function () {
     var filters = Filters.availableFilters();
     var filterRoot = document.getElementById('controls');
@@ -258,7 +260,7 @@ window.addEventListener('load', function () {
 
     window.setShader(initialFilter);
 
-    // create filter buttons
+    // Create filter buttons
     filters.forEach(function (filter) {
         var button = document.createElement('button');
         button.dataset.filter = filter;
@@ -271,7 +273,7 @@ window.addEventListener('load', function () {
         filterButtons.push(button);
     });
 
-    // radius slider
+    // Radius slider
     var radiusSlider = document.createElement('input');
     radiusSlider.type = 'range';
     radiusSlider.name = 'radius';
@@ -280,12 +282,12 @@ window.addEventListener('load', function () {
     radiusSlider.max = 100;
     radiusSlider.step = 1;
 
-    // radius slider label
+    // Radius slider label
     var radiusLabel = document.createElement('label');
     radiusLabel.for = 'radius';
     radiusLabel.innerText = 'Radius: ';
 
-    // radius slider value
+    // Radius slider value
     var radiusValue = document.createElement('span');
     radiusValue.innerText = '50%';
 
@@ -293,7 +295,7 @@ window.addEventListener('load', function () {
     radiusLabel.appendChild(radiusValue);
     filterRoot.appendChild(radiusLabel);
 
-    // intensity slider
+    // Intensity slider
     var intensitySlider = document.createElement('input');
     intensitySlider.type = 'range';
     intensitySlider.name = 'intensity';
@@ -313,7 +315,7 @@ window.addEventListener('load', function () {
     intensityLabel.appendChild(intensityValue);
     filterRoot.appendChild(intensityLabel);
 
-    // events
+    // Events
     document.addEventListener('click', function (_ref) {
         var target = _ref.target;
 
