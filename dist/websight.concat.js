@@ -21,18 +21,30 @@ window.addEventListener("load", () => {
 
     // Button to enable VR mode
     enterVRButton.addEventListener("click", () => {
-        if (navigator.userAgent.includes("Mobile VR")) {
-            vrDisplay.requestPresent([{ source: renderer.domElement }])
-        } else {
-            effect = new THREE.StereoEffect(renderer)
-            effect.separation = 0
-            effect.setSize(window.innerWidth, window.innerHeight)
-        }
-
-        // Hide controls
         const controls = document.getElementById("controls")
-        controls.style.display = "none"
+
+        if(enterVRButton.classList.contains('small')) {
+            closeVR()
+            enterVRButton.classList.remove('small')
+            controls.classList.remove('hidden')
+        } else {
+            if (navigator.userAgent.includes("Mobile VR")) {
+                vrDisplay.requestPresent([{ source: renderer.domElement }])
+            } else {
+                effect = new THREE.StereoEffect(renderer)
+                effect.separation = 0
+                effect.setSize(window.innerWidth, window.innerHeight)
+            }
+
+            // Shrink VR button
+            enterVRButton.classList.add('small')
+    
+            // Hide controls
+            controls.classList.add('hidden')
+        }
     })
+
+    const closeVR = () => {} // TODO
 
     // Scenes and camera
     const fov = 70

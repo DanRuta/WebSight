@@ -35,12 +35,14 @@
                 height: 100px;
                 position: fixed;
                 top: 0;
-                left: 0;
+                left: 100px;
 
                 display: flex;
                 flex-flow: row wrap;
                 align-items: flex-start;
             }
+
+            #controls.hidden { display: none; }
 
             #controls>* {
                 margin: 5px;
@@ -61,6 +63,10 @@
                 filter: drop-shadow(0 5px 5px black);
             }
 
+            #enterVRButton.small {
+                transform: scale(0.7);
+            }
+
             .filter-button {
                 min-width: 100px;
                 height: 50px;
@@ -76,9 +82,8 @@
         </style>
     </head>
     <body>
-        <div id="controls">
-            <div id="enterVRButton"></div>
-        </div>
+        <div id="enterVRButton"></div>
+        <div id="controls"></div>
     </body>
     <link rel="icon" href="./favicon.ico" type="image/x-icon">
     <script>
