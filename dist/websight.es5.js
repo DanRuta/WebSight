@@ -31,10 +31,10 @@ window.addEventListener("load", function () {
     enterVRButton.addEventListener("click", function () {
         var controls = document.getElementById("controls");
 
-        if (enterVRButton.classList.contains('small')) {
+        if (enterVRButton.classList.contains("small")) {
             closeVR();
-            enterVRButton.classList.remove('small');
-            controls.classList.remove('hidden');
+            enterVRButton.classList.remove("small");
+            controls.classList.remove("hidden");
         } else {
             if (navigator.userAgent.includes("Mobile VR")) {
                 vrDisplay.requestPresent([{ source: renderer.domElement }]);
@@ -52,7 +52,11 @@ window.addEventListener("load", function () {
         }
     });
 
-    var closeVR = function closeVR() {}; // TODO
+    var closeVR = function closeVR() {
+        effect = new THREE.VREffect(renderer);
+        effect.separation = 0;
+        effect.setSize(window.innerWidth, window.innerHeight);
+    };
 
     // Scenes and camera
     var fov = 70;

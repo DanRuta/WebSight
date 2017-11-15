@@ -23,10 +23,10 @@ window.addEventListener("load", () => {
     enterVRButton.addEventListener("click", () => {
         const controls = document.getElementById("controls")
 
-        if(enterVRButton.classList.contains('small')) {
+        if(enterVRButton.classList.contains("small")) {
             closeVR()
-            enterVRButton.classList.remove('small')
-            controls.classList.remove('hidden')
+            enterVRButton.classList.remove("small")
+            controls.classList.remove("hidden")
         } else {
             if (navigator.userAgent.includes("Mobile VR")) {
                 vrDisplay.requestPresent([{ source: renderer.domElement }])
@@ -38,13 +38,17 @@ window.addEventListener("load", () => {
 
             // Shrink VR button
             enterVRButton.classList.add('small')
-    
+
             // Hide controls
             controls.classList.add('hidden')
         }
     })
 
-    const closeVR = () => {} // TODO
+    const closeVR = () => {
+        effect = new THREE.VREffect(renderer)
+        effect.separation = 0
+        effect.setSize(window.innerWidth, window.innerHeight)
+    }
 
     // Scenes and camera
     const fov = 70
