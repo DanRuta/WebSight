@@ -175,11 +175,12 @@ window.addEventListener("load", function () {
         scene.remove(box);
         video.pause();
         makeBoxObject();
+
+        setShader(document.querySelector(".filter-button:disabled").dataset.filter);
+        setIntensity((parseFloat(document.getElementById("intensitySlider").value) || 0.01) / 100);
+        setRadius(parseFloat(document.getElementById("radiusSlider").value) / 100);
     });
 
-    // =======
-    //  Temporary, until the UI is implemented
-    // =======
     window.setShader = function (shader) {
         boxMaterial.fragmentShader = Filters.compileShader(shader);
         boxMaterial.needsUpdate = true;
@@ -190,7 +191,6 @@ window.addEventListener("load", function () {
     window.setIntensity = function (val) {
         boxMaterial.uniforms.intensity.value = 1 - val;
     };
-    // =======
 });
 
 "use strict";
@@ -291,6 +291,7 @@ window.addEventListener("load", function () {
 
     // Radius slider
     var radiusSlider = document.createElement("input");
+    radiusSlider.id = "radiusSlider";
     radiusSlider.type = "range";
     radiusSlider.name = "radius";
     radiusSlider.value = parseInt(window.localStorage.getItem("radius")) || 50;
@@ -313,6 +314,7 @@ window.addEventListener("load", function () {
 
     // Intensity slider
     var intensitySlider = document.createElement("input");
+    intensitySlider.id = "intensitySlider";
     intensitySlider.type = "range";
     intensitySlider.name = "intensity";
     intensitySlider.value = parseInt(window.localStorage.getItem("intensity")) || 100;
@@ -339,7 +341,7 @@ window.addEventListener("load", function () {
             window.setShader(target.dataset.filter);
 
             filterButtons.forEach(function (button) {
-                button.disabled = false;
+                return button.disabled = false;
             });
             target.disabled = true;
             window.localStorage.setItem("filter", target.dataset.filter);
