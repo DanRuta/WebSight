@@ -449,7 +449,7 @@ window.addEventListener("load", () => {
         button.innerText = filter
         button.classList.add("filter-button")
 
-        if (filter === initialFilter) button.disabled = true
+        if (button.dataset.filter === initialFilter) button.disabled = true
 
         filterRoot.appendChild(button)
         filterButtons.push(button)
