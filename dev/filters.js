@@ -3,10 +3,7 @@
 class Filters {
 
     static get availableFilters () {
-        // return ['sobel3x3', 'sobel5x5', 'inverted', "freichen256"];
-        return Object.getOwnPropertyNames(Filters)
-            .filter(m => m.includes("Body"))
-            .map(m => m.replace("Body", ""))
+        return ["Sobel 3x3", "Sobel 5x5", "Inverted", "Frei-Chen", "Frei-Chen 256",  "Palette 256"]
     }
 
     static compileShader (name) {

@@ -11,7 +11,7 @@ window.addEventListener("load", () => {
     // Create filter buttons
     filters.forEach(filter => {
         const button = document.createElement("button")
-        button.dataset.filter = filter
+        button.dataset.filter = filter.toLowerCase().replace(/\s|\-/g, "")
         button.innerText = filter
         button.classList.add("filter-button")
 

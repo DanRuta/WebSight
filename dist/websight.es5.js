@@ -215,12 +215,7 @@ var Filters = function () {
     }, {
         key: "availableFilters",
         get: function get() {
-            // return ['sobel3x3', 'sobel5x5', 'inverted', "freichen256"];
-            return Object.getOwnPropertyNames(Filters).filter(function (m) {
-                return m.includes("Body");
-            }).map(function (m) {
-                return m.replace("Body", "");
-            });
+            return ["Sobel 3x3", "Sobel 5x5", "Inverted", "Frei-Chen", "Frei-Chen 256", "Palette 256"];
         }
     }, {
         key: "sobel3x3Body",
@@ -279,7 +274,7 @@ window.addEventListener("load", function () {
     // Create filter buttons
     filters.forEach(function (filter) {
         var button = document.createElement("button");
-        button.dataset.filter = filter;
+        button.dataset.filter = filter.toLowerCase().replace(/\s|\-/g, "");
         button.innerText = filter;
         button.classList.add("filter-button");
 
