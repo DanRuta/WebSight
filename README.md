@@ -1,9 +1,9 @@
-Sobel Sight
+WebSight
 ===
 
 Browser based real time VR video pass-through augmentation via WebGL shaders such as edge detection, to aid the visually impaired.
 
-Live demo: https://websight.danruta.co.uk/
+Live PWA demo: https://websight.danruta.co.uk/
 
 ---
 
@@ -13,7 +13,7 @@ On the web, people with low vision can turn on high contrast mode, to ease the s
 
 What if we took that concept and applied it to their lives outside of web surfing?
 
-Sobel sight is a small experiment that sets out to explore and implement a system to help give visually impaired people a new perspective on life.
+WebSight is a small experiment that sets out to explore and implement a system to help give visually impaired people a new perspective on life.
 
 ---
 
