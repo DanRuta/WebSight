@@ -116,6 +116,8 @@ window.addEventListener("load", function () {
         camera.position.z = 0.5 * boxWidth * Math.atan(degToRad(90 - fov / 2)) + 100;
     };
 
+    var getVideoFeedAttempts = 0;
+
     var getVideoFeed = function getVideoFeed() {
         try {
             var mediaDevicesSupport = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
@@ -125,7 +127,14 @@ window.addEventListener("load", function () {
                     video.src = window.URL.createObjectURL(stream);
                 }).catch(function (err) {
                     console.log(err);
-                    alert("There was an error accessing the camera. Please try again and ensure you are using https");
+                    getVideoFeedAttempts++;
+
+                    // Rarely, getting the camera fails. Re-attempting usually works, on refresh.
+                    if (getVideoFeedAttempts < 3) {
+                        getVideoFeed();
+                    } else {
+                        alert("There was an error accessing the camera. Please try again and ensure you are using https");
+                    }
                 });
             } else {
                 var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;

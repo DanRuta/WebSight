@@ -108,6 +108,8 @@ window.addEventListener("load", () => {
         camera.position.z = 0.5 * boxWidth * Math.atan(degToRad(90 - fov / 2)) + 100
     }
 
+    let getVideoFeedAttempts = 0
+
     const getVideoFeed = () => {
         try {
             const mediaDevicesSupport = navigator.mediaDevices && navigator.mediaDevices.getUserMedia
@@ -120,9 +122,14 @@ window.addEventListener("load", () => {
                     })
                     .catch(err => {
                         console.log(err)
-                        alert(
-                            "There was an error accessing the camera. Please try again and ensure you are using https"
-                        )
+                        getVideoFeedAttempts++
+
+                        // Rarely, getting the camera fails. Re-attempting usually works, on refresh.
+                        if (getVideoFeedAttempts<3) {
+                            getVideoFeed()
+                        } else {
+                            alert("There was an error accessing the camera. Please try again and ensure you are using https")
+                        }
                     })
             } else {
                 const getUserMedia =
@@ -139,9 +146,7 @@ window.addEventListener("load", () => {
                         },
                         err => {
                             console.log(err)
-                            alert(
-                                "There was an error accessing the camera. Please try again and ensure you are using https."
-                            )
+                            alert("There was an error accessing the camera. Please try again and ensure you are using https.")
                         }
                     )
                 } else {
