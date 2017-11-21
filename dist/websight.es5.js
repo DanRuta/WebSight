@@ -248,7 +248,7 @@ window.addEventListener("load", function () {
     };
 
     // For reverting to, when toggling back to colour, from background
-    var surfaceCache = {};
+    var surfaceCache = { r: 0, g: 0, b: 0 };
 
     window.setSurfaceColour = function (_ref2) {
         var _ref2$r = _ref2.r,

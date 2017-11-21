@@ -247,7 +247,7 @@ window.addEventListener("load", () => {
     }
 
     // For reverting to, when toggling back to colour, from background
-    const surfaceCache = {}
+    const surfaceCache = {r: 0, g: 0, b: 0}
 
     window.setSurfaceColour = ({r=0, g=0, b=0}) => {
         boxMaterial.uniforms.surfaceR.value = surfaceCache.r = r / 255
@@ -262,6 +262,7 @@ window.addEventListener("load", () => {
     }
 
     window.toggleBackground = isBackground => {
+
         Filters.hasBackground = !!isBackground
 
         if (Filters.hasBackground) {
