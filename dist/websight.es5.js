@@ -191,6 +191,7 @@ window.addEventListener("load", function () {
     });
 
     window.setShader = function (shader) {
+        Filters.shader = shader;
         boxMaterial.fragmentShader = Filters.compileShader(shader);
         boxMaterial.needsUpdate = true;
     };
@@ -199,6 +200,11 @@ window.addEventListener("load", function () {
     };
     window.setIntensity = function (val) {
         boxMaterial.uniforms.intensity.value = 1 - val;
+    };
+    window.toggleInverted = function () {
+        Filters.isInverted = !Filters.isInverted;
+        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader);
+        boxMaterial.needsUpdate = true;
     };
 });
 
@@ -212,7 +218,7 @@ var Filters = function () {
     _createClass(Filters, null, [{
         key: "compileShader",
         value: function compileShader(name) {
-            return "\n            uniform sampler2D texture;\n            uniform float width;\n            uniform float height;\n            uniform float radius;\n            uniform float intensity;\n            uniform vec2 resolution;\n            varying vec2 vUv;\n\n            void main() {\n\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n\n                vec4 pixel = texture2D(texture, vUv);\n\n                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < radius) {\n\n                    " + this[name + "Body"] + "\n\n                    gl_FragColor = newColour*(1.0-intensity) + pixel*intensity;;\n\n                } else {\n                    gl_FragColor = vec4(pixel.rgb, 1.0);\n                }\n            }\n        ";
+            return "\n            uniform sampler2D texture;\n            uniform float width;\n            uniform float height;\n            uniform float radius;\n            uniform float intensity;\n            uniform vec2 resolution;\n            varying vec2 vUv;\n\n            void main() {\n\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n\n                vec4 pixel = texture2D(texture, vUv);\n\n                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < radius) {\n\n                    " + this[name + "Body"] + "\n\n                    gl_FragColor = newColour*(1.0-intensity) + pixel*intensity;;\n\n                } else {\n                    gl_FragColor = vec4(pixel.rgb, 1.0);\n                }\n\n                " + (this.isInverted ? this.invertedBody : "") + "\n\n            }\n        ";
         }
 
         /*
@@ -224,7 +230,7 @@ var Filters = function () {
     }, {
         key: "availableFilters",
         get: function get() {
-            return ["Sobel 3x3", "Sobel 5x5", "Inverted", "Frei-Chen", "Frei-Chen 256", "Palette 256"];
+            return ["Sobel 3x3", "Sobel 5x5", "Frei-Chen", "Frei-Chen 256", "Palette 256"];
         }
     }, {
         key: "sobel3x3Body",
@@ -248,7 +254,7 @@ var Filters = function () {
     }, {
         key: "invertedBody",
         get: function get() {
-            return "\n            vec4 pixel = texture2D(texture, vUv);\n            vec4 newColour = vec4( 1.0 - pixel.rgb, 1.0 );\n        ";
+            return "\n            gl_FragColor.rgb = 1.0 - gl_FragColor.rgb;\n        ";
         }
     }, {
         key: "freichenBody",

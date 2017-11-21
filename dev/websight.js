@@ -197,6 +197,7 @@ window.addEventListener("load", () => {
     })
 
     window.setShader = shader => {
+        Filters.shader = shader
         boxMaterial.fragmentShader = Filters.compileShader(shader)
         boxMaterial.needsUpdate = true
     }
@@ -205,5 +206,10 @@ window.addEventListener("load", () => {
     }
     window.setIntensity = val => {
         boxMaterial.uniforms.intensity.value = 1 - val
+    }
+    window.toggleInverted = () => {
+        Filters.isInverted = !Filters.isInverted
+        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader)
+        boxMaterial.needsUpdate = true
     }
 })

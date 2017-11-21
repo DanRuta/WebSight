@@ -3,7 +3,7 @@
 class Filters {
 
     static get availableFilters () {
-        return ["Sobel 3x3", "Sobel 5x5", "Inverted", "Frei-Chen", "Frei-Chen 256",  "Palette 256"]
+        return ["Sobel 3x3", "Sobel 5x5", "Frei-Chen", "Frei-Chen 256",  "Palette 256"]
     }
 
     static compileShader (name) {
@@ -32,6 +32,9 @@ class Filters {
                 } else {
                     gl_FragColor = vec4(pixel.rgb, 1.0);
                 }
+
+                ${this.isInverted ? this.invertedBody : ""}
+
             }
         `
     }
@@ -109,8 +112,7 @@ class Filters {
 
     static get invertedBody () {
         return `
-            vec4 pixel = texture2D(texture, vUv);
-            vec4 newColour = vec4( 1.0 - pixel.rgb, 1.0 );
+            gl_FragColor.rgb = 1.0 - gl_FragColor.rgb;
         `
     }
 
