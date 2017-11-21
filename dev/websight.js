@@ -23,7 +23,7 @@ window.addEventListener("load", () => {
     enterVRButton.addEventListener("click", () => {
         const controls = document.getElementById("controls")
 
-        if(enterVRButton.classList.contains("small")) {
+        if (enterVRButton.classList.contains("small")) {
             closeVR()
             enterVRButton.classList.remove("small")
             controls.classList.remove("hidden")
@@ -37,10 +37,10 @@ window.addEventListener("load", () => {
             }
 
             // Shrink VR button
-            enterVRButton.classList.add('small')
+            enterVRButton.classList.add("small")
 
             // Hide controls
-            controls.classList.add('hidden')
+            controls.classList.add("hidden")
         }
     })
 

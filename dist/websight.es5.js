@@ -45,10 +45,10 @@ window.addEventListener("load", function () {
             }
 
             // Shrink VR button
-            enterVRButton.classList.add('small');
+            enterVRButton.classList.add("small");
 
             // Hide controls
-            controls.classList.add('hidden');
+            controls.classList.add("hidden");
         }
     });
 
@@ -273,15 +273,18 @@ var Filters = function () {
 "use strict";
 
 window.addEventListener("load", function () {
+
     var filters = Filters.availableFilters;
-    var filterRoot = document.getElementById("controls");
     var initialFilter = window.localStorage.getItem("filter") || "sobel3x3";
-    var filterButtons = [];
 
     window.setShader(initialFilter);
 
+    var controlsRoot = document.getElementById("controls");
+    var filtersRoot = controlsRoot.getElementsByClassName("filters")[0];
+    var slidersRoot = controlsRoot.getElementsByClassName("sliders")[0];
+
     // Create filter buttons
-    filters.forEach(function (filter) {
+    var filterButtons = filters.map(function (filter) {
         var button = document.createElement("button");
         button.dataset.filter = filter.toLowerCase().replace(/\s|\-/g, "");
         button.innerText = filter;
@@ -289,9 +292,9 @@ window.addEventListener("load", function () {
 
         if (button.dataset.filter === initialFilter) button.disabled = true;
 
-        filterRoot.appendChild(button);
-        filterButtons.push(button);
-    });
+        filtersRoot.appendChild(button);
+        return button;
+    }, []);
 
     // Radius slider
     var radiusSlider = document.createElement("input");
@@ -314,7 +317,7 @@ window.addEventListener("load", function () {
 
     radiusLabel.appendChild(radiusSlider);
     radiusLabel.appendChild(radiusValue);
-    filterRoot.appendChild(radiusLabel);
+    slidersRoot.appendChild(radiusLabel);
 
     // Intensity slider
     var intensitySlider = document.createElement("input");
@@ -335,7 +338,7 @@ window.addEventListener("load", function () {
 
     intensityLabel.appendChild(intensitySlider);
     intensityLabel.appendChild(intensityValue);
-    filterRoot.appendChild(intensityLabel);
+    slidersRoot.appendChild(intensityLabel);
 
     // Events
     document.addEventListener("click", function (_ref) {
@@ -343,7 +346,6 @@ window.addEventListener("load", function () {
 
         if (target.dataset.filter) {
             window.setShader(target.dataset.filter);
-
             filterButtons.forEach(function (button) {
                 return button.disabled = false;
             });
@@ -375,6 +377,11 @@ window.addEventListener("load", function () {
 
     intensitySlider.addEventListener("mousemove", updateIntensity);
     intensitySlider.addEventListener("change", updateIntensity);
+
+    var controlMenuToggle = document.querySelector("#controls .toggle");
+    controlMenuToggle.addEventListener("click", function () {
+        return controlsRoot.classList.toggle("open");
+    });
 });
 
 //# sourceMappingURL=websight.concat.js.map

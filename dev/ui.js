@@ -1,15 +1,18 @@
 "use strict"
 
 window.addEventListener("load", () => {
+
     const filters = Filters.availableFilters
-    const filterRoot = document.getElementById("controls")
     const initialFilter = window.localStorage.getItem("filter") || "sobel3x3"
-    const filterButtons = []
 
     window.setShader(initialFilter)
 
+    const controlsRoot = document.getElementById("controls")
+    const filtersRoot = controlsRoot.getElementsByClassName("filters")[0]
+    const slidersRoot = controlsRoot.getElementsByClassName("sliders")[0]
+
     // Create filter buttons
-    filters.forEach(filter => {
+    const filterButtons = filters.map((filter) => {
         const button = document.createElement("button")
         button.dataset.filter = filter.toLowerCase().replace(/\s|\-/g, "")
         button.innerText = filter
@@ -17,9 +20,9 @@ window.addEventListener("load", () => {
 
         if (button.dataset.filter === initialFilter) button.disabled = true
 
-        filterRoot.appendChild(button)
-        filterButtons.push(button)
-    })
+        filtersRoot.appendChild(button)
+        return button
+    }, [])
 
     // Radius slider
     const radiusSlider = document.createElement("input")
@@ -42,7 +45,7 @@ window.addEventListener("load", () => {
 
     radiusLabel.appendChild(radiusSlider)
     radiusLabel.appendChild(radiusValue)
-    filterRoot.appendChild(radiusLabel)
+    slidersRoot.appendChild(radiusLabel)
 
     // Intensity slider
     const intensitySlider = document.createElement("input")
@@ -63,13 +66,12 @@ window.addEventListener("load", () => {
 
     intensityLabel.appendChild(intensitySlider)
     intensityLabel.appendChild(intensityValue)
-    filterRoot.appendChild(intensityLabel)
+    slidersRoot.appendChild(intensityLabel)
 
     // Events
     document.addEventListener("click", ({ target }) => {
         if (target.dataset.filter) {
             window.setShader(target.dataset.filter)
-
             filterButtons.forEach(button => button.disabled = false)
             target.disabled = true
             window.localStorage.setItem("filter", target.dataset.filter)
@@ -95,4 +97,7 @@ window.addEventListener("load", () => {
 
     intensitySlider.addEventListener("mousemove", updateIntensity)
     intensitySlider.addEventListener("change", updateIntensity)
+
+    const controlMenuToggle = document.querySelector("#controls .toggle")
+    controlMenuToggle.addEventListener("click", () => controlsRoot.classList.toggle("open"))
 })

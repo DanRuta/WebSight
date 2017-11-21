@@ -30,27 +30,68 @@
                 font-family: Arial, Helvetica, sans-serif;
             }
 
-            #controls {
+            .ui-container {
                 width: 100%;
-                height: 100px;
                 position: fixed;
-                top: 0;
-                left: 100px;
-
-                display: flex;
-                flex-flow: row wrap;
-                align-items: flex-start;
             }
 
-            #controls.hidden { display: none; }
+            #controls {
+                max-width: 790px;
+                height: 100px;
+                margin: 0 auto;
+                padding: 5px;
 
-            #controls>* {
+                background: rgba(255,255,255, 0.3);
+                border-radius: 3px;
+
+                transform: translateY(-100px);
+                transition: transform 500ms ease;
+            }
+
+            #controls.open { transform: translateY(0); }
+
+            #controls .filters {
+                overflow-x: scroll;
+                display: flex;
+                flex-flow: row nowrap;
+            }
+
+            #controls .filters > * {
                 margin: 5px;
+            }
+
+            #controls .sliders {
+                width: 100%;
+                display: flex;
+                flex-flow: row nowrap;
+                justify-content: space-around;
+                margin: 8px 0;
             }
 
             #controls input,
             #controls button {
                 cursor: pointer;
+            }
+
+            #controls .toggle {
+                /* Fix this
+                background-image: url('/images/icons/down-arrow.svg');
+                background-size: contain;
+                background-position: center center; */
+                background-color: transparent;
+                width: 50px;
+                height: 50px;
+                padding: 5px;
+                border: 0;
+                outline: 0;
+                display: block;
+                margin: 0 auto;
+                transform: rotateX(0);
+                transition: transform 500ms ease;                            
+            }
+
+            #controls.open .toggle {
+                transform: rotateX(180deg);
             }
 
             #enterVRButton {
@@ -69,8 +110,8 @@
             }
 
             .filter-button {
-                min-width: 100px;
-                height: 50px;
+                min-width: 120px;
+                min-height: 50px;
                 font-size: 1.3em;
                 border: 0;
                 background: #f1f1f1;
@@ -83,8 +124,20 @@
         </style>
     </head>
     <body>
-        <div id="enterVRButton"></div>
-        <div id="controls"></div>
+        <div class="ui-container">
+            <div id="enterVRButton"></div>
+            <div id="controls">
+                <span class="filters"></span>
+                <span class="sliders"></span>
+                <button class="toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 129 129">
+                        <g>
+                        <path d="m121.3,34.6c-1.6-1.6-4.2-1.6-5.8,0l-51,51.1-51.1-51.1c-1.6-1.6-4.2-1.6-5.8,0-1.6,1.6-1.6,4.2 0,5.8l53.9,53.9c0.8,0.8 1.8,1.2 2.9,1.2 1,0 2.1-0.4 2.9-1.2l53.9-53.9c1.7-1.6 1.7-4.2 0.1-5.8z" fill="#FFFFFF"/>
+                        </g>
+                    </svg>
+                </button>
+            </div>
+        </div>
     </body>
     <link rel="icon" href="./images/favicon.ico" type="image/x-icon">
     <script>
