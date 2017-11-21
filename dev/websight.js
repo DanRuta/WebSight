@@ -246,9 +246,36 @@ window.addEventListener("load", () => {
         boxMaterial.uniforms.edgeB.value = b / 255
     }
 
+    // For reverting to, when toggling back to colour, from background
+    const surfaceCache = {}
+
     window.setSurfaceColour = ({r=0, g=0, b=0}) => {
-        boxMaterial.uniforms.surfaceR.value = r / 255
-        boxMaterial.uniforms.surfaceG.value = g / 255
-        boxMaterial.uniforms.surfaceB.value = b / 255
+        boxMaterial.uniforms.surfaceR.value = surfaceCache.r = r / 255
+        boxMaterial.uniforms.surfaceG.value = surfaceCache.g = g / 255
+        boxMaterial.uniforms.surfaceB.value = surfaceCache.b = b / 255
     }
+
+    window.toggleReducedColours = () => {
+        Filters.hasReducedColours = !Filters.hasReducedColours
+        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader)
+        boxMaterial.needsUpdate = true
+    }
+
+    window.toggleBackground = isBackground => {
+        Filters.hasBackground = !!isBackground
+
+        if (Filters.hasBackground) {
+            boxMaterial.uniforms.surfaceR.value = 0
+            boxMaterial.uniforms.surfaceG.value = 0
+            boxMaterial.uniforms.surfaceB.value = 0
+        } else {
+            boxMaterial.uniforms.surfaceR.value = surfaceCache.r
+            boxMaterial.uniforms.surfaceG.value = surfaceCache.g
+            boxMaterial.uniforms.surfaceB.value = surfaceCache.b
+        }
+
+        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader)
+        boxMaterial.needsUpdate = true
+    }
+
 })

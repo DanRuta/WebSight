@@ -123,6 +123,12 @@
             .filter-button:disabled {
                 opacity: 0.5;
             }
+
+            input[type="checkbox"] {
+                height: 30px;
+                width: 30px;
+            }
+
         </style>
     </head>
     <body>
@@ -131,6 +137,21 @@
             <div id="controls">
                 <span class="filters"></span>
                 <span class="sliders"></span>
+
+                <div>
+                    <!-- TEMP -->
+                    <input id="invertedCheckbox" type="checkbox"> Inverted
+                    <input id="reducedColoursCheckbox" type="checkbox"> Reduced Colours
+                    <input id="backgroundCheckbox" type="checkbox"> Toggle Background / colour
+
+                    <!-- also temp, until we add a colourwheel or something -->
+                    <button id="setBlueEdgesButton">Set blue edges</button>
+                    <button id="setGreenEdgesButton">Set green edges</button>
+
+                    <button id="setRedBackgroundButton">Set red background</button>
+                    <button id="setYellowBackgroundButton">Set yellow background</button>
+                </div>
+
                 <button class="toggle">
                     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 129 129">
                         <g>

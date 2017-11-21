@@ -247,6 +247,9 @@ window.addEventListener("load", function () {
         boxMaterial.uniforms.edgeB.value = b / 255;
     };
 
+    // For reverting to, when toggling back to colour, from background
+    var surfaceCache = {};
+
     window.setSurfaceColour = function (_ref2) {
         var _ref2$r = _ref2.r,
             r = _ref2$r === undefined ? 0 : _ref2$r,
@@ -255,9 +258,32 @@ window.addEventListener("load", function () {
             _ref2$b = _ref2.b,
             b = _ref2$b === undefined ? 0 : _ref2$b;
 
-        boxMaterial.uniforms.surfaceR.value = r / 255;
-        boxMaterial.uniforms.surfaceG.value = g / 255;
-        boxMaterial.uniforms.surfaceB.value = b / 255;
+        boxMaterial.uniforms.surfaceR.value = surfaceCache.r = r / 255;
+        boxMaterial.uniforms.surfaceG.value = surfaceCache.g = g / 255;
+        boxMaterial.uniforms.surfaceB.value = surfaceCache.b = b / 255;
+    };
+
+    window.toggleReducedColours = function () {
+        Filters.hasReducedColours = !Filters.hasReducedColours;
+        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader);
+        boxMaterial.needsUpdate = true;
+    };
+
+    window.toggleBackground = function (isBackground) {
+        Filters.hasBackground = !!isBackground;
+
+        if (Filters.hasBackground) {
+            boxMaterial.uniforms.surfaceR.value = 0;
+            boxMaterial.uniforms.surfaceG.value = 0;
+            boxMaterial.uniforms.surfaceB.value = 0;
+        } else {
+            boxMaterial.uniforms.surfaceR.value = surfaceCache.r;
+            boxMaterial.uniforms.surfaceG.value = surfaceCache.g;
+            boxMaterial.uniforms.surfaceB.value = surfaceCache.b;
+        }
+
+        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader);
+        boxMaterial.needsUpdate = true;
     };
 });
 
@@ -271,17 +297,32 @@ var Filters = function () {
     _createClass(Filters, null, [{
         key: "compileShader",
         value: function compileShader(name) {
-            return "\n            uniform sampler2D texture;\n            uniform float width;\n            uniform float height;\n            uniform float radius;\n            uniform float intensity;\n            uniform vec2 resolution;\n            varying vec2 vUv;\n\n            uniform float edgeR;\n            uniform float edgeG;\n            uniform float edgeB;\n\n            uniform float surfaceR;\n            uniform float surfaceG;\n            uniform float surfaceB;\n\n            void main() {\n\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n\n                vec4 pixel = texture2D(texture, vUv);\n\n                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < radius) {\n\n                    " + this[name + "Body"] + "\n\n                    " + (this.isInverted ? this.invertedBody : "") + "\n\n                    gl_FragColor = newColour*(1.0-intensity) + pixel*intensity;;\n\n                } else {\n                    gl_FragColor = vec4(pixel.rgb, 1.0);\n                }\n\n            }\n        ";
+            return "\n            uniform sampler2D texture;\n            uniform float width;\n            uniform float height;\n            uniform float radius;\n            uniform float intensity;\n            uniform vec2 resolution;\n            varying vec2 vUv;\n\n            uniform float edgeR;\n            uniform float edgeG;\n            uniform float edgeB;\n\n            uniform float surfaceR;\n            uniform float surfaceG;\n            uniform float surfaceB;\n\n            void main() {\n\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n\n                vec4 pixel = texture2D(texture, vUv);\n\n                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < radius) {\n\n                    " + this[name + "Body"] + "\n\n                    gl_FragColor = newColour*(1.0-intensity) + pixel*intensity;\n\n                    " + (this.hasBackground ? this.addBackground : "") + "\n\n                    " + (this.hasReducedColours ? this.reducedColoursBody : "") + "\n\n                    " + (this.isInverted ? this.invertedBody : "") + "\n\n                } else {\n                    gl_FragColor = vec4(pixel.rgb, 1.0);\n                }\n\n            }\n        ";
         }
     }, {
         key: "availableFilters",
         get: function get() {
-            return ["No effect", "Sobel 3x3", "Sobel 5x5", "Frei-Chen", "Frei-Chen 256", "Palette 256"];
+            return ["No effect", "Sobel 3x3", "Sobel 5x5", "Frei-Chen"];
         }
     }, {
         key: "noeffectBody",
         get: function get() {
             return "vec4 newColour = vec4(pixel.rgb, 1.0);";
+        }
+    }, {
+        key: "invertedBody",
+        get: function get() {
+            return "\n            gl_FragColor.rgb = 1.0 - gl_FragColor.rgb;\n        ";
+        }
+    }, {
+        key: "reducedColoursBody",
+        get: function get() {
+            return "\n            gl_FragColor.r = float(floor(gl_FragColor.r * 5.0 ) / 5.0);\n            gl_FragColor.g = float(floor(gl_FragColor.g * 5.0 ) / 5.0);\n            gl_FragColor.b = float(floor(gl_FragColor.b * 5.0 ) / 5.0);\n        ";
+        }
+    }, {
+        key: "addBackground",
+        get: function get() {
+            return "\n            gl_FragColor.r += pixel.r * 0.9;\n            gl_FragColor.g += pixel.g * 0.9;\n            gl_FragColor.b += pixel.b * 0.9;\n        ";
         }
 
         /*
@@ -310,24 +351,9 @@ var Filters = function () {
             return "\n            vec4 n[25];\n\n            for (int i=-2; i<=2; i++) {\n                for (int j=-2; j<=2; j++) {\n                    n[(j+2)+(i+2)*5] = texture2D(texture, vUv + vec2(float(j)*w, float(i)*h) );\n                }\n            }\n\n            vec4 sobel_x = 2.0*n[4] + 3.0*n[9] + 4.0*n[14] + 3.0*n[19] + 2.0*n[24] +\n                           n[3] + 2.0*n[8] + 3.0*n[13] + 2.0*n[18] + n[23] -\n                           (2.0*n[0] + 3.0*n[5] + 4.0*n[10] + 3.0*n[15] + 2.0*n[20] +\n                           n[1] + 2.0*n[6] + 3.0*n[11] + 2.0*n[16] + n[21]);\n\n            vec4 sobel_y = 2.0*n[0] + n[1] + n[3] + n[4] +\n                           3.0*n[5] + 2.0*n[6] + 2.0*n[8] + 3.0*n[9] -\n                           (3.0*n[15] + 2.0*n[16] + 2.0*n[18] + 3.0*n[19] +\n                            2.0*n[20] + n[21] + n[23] + n[24]);\n\n            float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0 / 9.0;\n            float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0 / 9.0;\n\n            sobel_x.r = avg_x;\n            sobel_x.g = avg_x;\n            sobel_x.b = avg_x;\n            sobel_y.r = avg_y;\n            sobel_y.g = avg_y;\n            sobel_y.b = avg_y;\n\n            vec3 sobel = vec3(sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)));\n            sobel.r = surfaceR * (1.0 - sobel.r) + sobel.r * edgeR;\n            sobel.g = surfaceG * (1.0 - sobel.g) + sobel.g * edgeG;\n            sobel.b = surfaceB * (1.0 - sobel.b) + sobel.b * edgeB;\n\n            vec4 newColour = vec4(sobel, 1.0 );\n        ";
         }
     }, {
-        key: "invertedBody",
-        get: function get() {
-            return "\n            newColour.rgb = 1.0 - newColour.rgb;\n        ";
-        }
-    }, {
         key: "freichenBody",
         get: function get() {
             return "\n\n            vec2 texel = vec2(1.0 / width, 1.0 / height);\n            mat3 I;\n            mat3 G[9];\n            float cnv[9];\n\n            G[0] = mat3( 0.3535533845424652, 0, -0.3535533845424652, 0.5, 0, -0.5, 0.3535533845424652, 0, -0.3535533845424652 );\n            G[1] = mat3( 0.3535533845424652, 0.5, 0.3535533845424652, 0, 0, 0, -0.3535533845424652, -0.5, -0.3535533845424652 );\n            G[2] = mat3( 0, 0.3535533845424652, -0.5, -0.3535533845424652, 0, 0.3535533845424652, 0.5, -0.3535533845424652, 0 );\n            G[3] = mat3( 0.5, -0.3535533845424652, 0, -0.3535533845424652, 0, 0.3535533845424652, 0, 0.3535533845424652, -0.5 );\n            G[4] = mat3( 0, -0.5, 0, 0.5, 0, 0.5, 0, -0.5, 0 );\n            G[5] = mat3( -0.5, 0, 0.5, 0, 0, 0, 0.5, 0, -0.5 );\n            G[6] = mat3( 0.1666666716337204, -0.3333333432674408, 0.1666666716337204, -0.3333333432674408, 0.6666666865348816, -0.3333333432674408, 0.1666666716337204, -0.3333333432674408, 0.1666666716337204 );\n            G[7] = mat3( -0.3333333432674408, 0.1666666716337204, -0.3333333432674408, 0.1666666716337204, 0.6666666865348816, 0.1666666716337204, -0.3333333432674408, 0.1666666716337204, -0.3333333432674408 );\n            G[8] = mat3( 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408 );\n\n            // Get intensity\n            I[0][0] = length(texture2D(texture, vUv + texel * vec2(-1.0,-1.0) ).rgb);\n            I[0][1] = length(texture2D(texture, vUv + texel * vec2(-1.0,0.0) ).rgb);\n            I[0][2] = length(texture2D(texture, vUv + texel * vec2(-1.0,1.0) ).rgb);\n            I[1][0] = length(texture2D(texture, vUv + texel * vec2(0.0,-1.0) ).rgb);\n            I[1][1] = length(texture2D(texture, vUv + texel * vec2(0.0,0.0) ).rgb);\n            I[1][2] = length(texture2D(texture, vUv + texel * vec2(0.0,1.0) ).rgb);\n            I[2][0] = length(texture2D(texture, vUv + texel * vec2(1.0,-1.0) ).rgb);\n            I[2][1] = length(texture2D(texture, vUv + texel * vec2(1.0,0.0) ).rgb);\n            I[2][2] = length(texture2D(texture, vUv + texel * vec2(1.0,1.0) ).rgb);\n\n            // Convolve\n            cnv[0] = pow(dot(G[0][0], I[0]) + dot(G[0][1], I[1]) + dot(G[0][2], I[2]) , 2.0);\n            cnv[1] = pow(dot(G[1][0], I[0]) + dot(G[1][1], I[1]) + dot(G[1][2], I[2]) , 2.0);\n            cnv[2] = pow(dot(G[2][0], I[0]) + dot(G[2][1], I[1]) + dot(G[2][2], I[2]) , 2.0);\n            cnv[3] = pow(dot(G[3][0], I[0]) + dot(G[3][1], I[1]) + dot(G[3][2], I[2]) , 2.0);\n            cnv[4] = pow(dot(G[4][0], I[0]) + dot(G[4][1], I[1]) + dot(G[4][2], I[2]) , 2.0);\n            cnv[5] = pow(dot(G[5][0], I[0]) + dot(G[5][1], I[1]) + dot(G[5][2], I[2]) , 2.0);\n            cnv[6] = pow(dot(G[6][0], I[0]) + dot(G[6][1], I[1]) + dot(G[6][2], I[2]) , 2.0);\n            cnv[7] = pow(dot(G[7][0], I[0]) + dot(G[7][1], I[1]) + dot(G[7][2], I[2]) , 2.0);\n            cnv[8] = pow(dot(G[8][0], I[0]) + dot(G[8][1], I[1]) + dot(G[8][2], I[2]) , 2.0);\n\n            float M = (cnv[0] + cnv[1]) + (cnv[2] + cnv[3]);\n            float S = (cnv[4] + cnv[5]) + (cnv[6] + cnv[7]) + (cnv[8] + M);\n\n            vec3 freiChen = vec3(sqrt(M/S)) * 2.0;\n            freiChen.r = surfaceR * (1.0 - freiChen.r) + freiChen.r * edgeR;\n            freiChen.g = surfaceG * (1.0 - freiChen.g) + freiChen.g * edgeG;\n            freiChen.b = surfaceB * (1.0 - freiChen.b) + freiChen.b * edgeB;\n\n            vec4 newColour = vec4(freiChen, 1.0 );\n        ";
-        }
-    }, {
-        key: "freichen256Body",
-        get: function get() {
-            return "\n            vec2 texel = vec2(1.0 / width, 1.0 / height);\n            mat3 I;\n            mat3 G[9];\n            float cnv[9];\n\n            G[0] = mat3( 0.3535533845424652, 0, -0.3535533845424652, 0.5, 0, -0.5, 0.3535533845424652, 0, -0.3535533845424652 );\n            G[1] = mat3( 0.3535533845424652, 0.5, 0.3535533845424652, 0, 0, 0, -0.3535533845424652, -0.5, -0.3535533845424652 );\n            G[2] = mat3( 0, 0.3535533845424652, -0.5, -0.3535533845424652, 0, 0.3535533845424652, 0.5, -0.3535533845424652, 0 );\n            G[3] = mat3( 0.5, -0.3535533845424652, 0, -0.3535533845424652, 0, 0.3535533845424652, 0, 0.3535533845424652, -0.5 );\n            G[4] = mat3( 0, -0.5, 0, 0.5, 0, 0.5, 0, -0.5, 0 );\n            G[5] = mat3( -0.5, 0, 0.5, 0, 0, 0, 0.5, 0, -0.5 );\n            G[6] = mat3( 0.1666666716337204, -0.3333333432674408, 0.1666666716337204, -0.3333333432674408, 0.6666666865348816, -0.3333333432674408, 0.1666666716337204, -0.3333333432674408, 0.1666666716337204 );\n            G[7] = mat3( -0.3333333432674408, 0.1666666716337204, -0.3333333432674408, 0.1666666716337204, 0.6666666865348816, 0.1666666716337204, -0.3333333432674408, 0.1666666716337204, -0.3333333432674408 );\n            G[8] = mat3( 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408 );\n\n            // Get intensity\n            I[0][0] = length(texture2D(texture, vUv + texel * vec2(-1.0,-1.0) ).rgb);\n            I[0][1] = length(texture2D(texture, vUv + texel * vec2(-1.0,0.0) ).rgb);\n            I[0][2] = length(texture2D(texture, vUv + texel * vec2(-1.0,1.0) ).rgb);\n            I[1][0] = length(texture2D(texture, vUv + texel * vec2(0.0,-1.0) ).rgb);\n            I[1][1] = length(texture2D(texture, vUv + texel * vec2(0.0,0.0) ).rgb);\n            I[1][2] = length(texture2D(texture, vUv + texel * vec2(0.0,1.0) ).rgb);\n            I[2][0] = length(texture2D(texture, vUv + texel * vec2(1.0,-1.0) ).rgb);\n            I[2][1] = length(texture2D(texture, vUv + texel * vec2(1.0,0.0) ).rgb);\n            I[2][2] = length(texture2D(texture, vUv + texel * vec2(1.0,1.0) ).rgb);\n\n            // Convolve\n            cnv[0] = pow(dot(G[0][0], I[0]) + dot(G[0][1], I[1]) + dot(G[0][2], I[2]) , 2.0);\n            cnv[1] = pow(dot(G[1][0], I[0]) + dot(G[1][1], I[1]) + dot(G[1][2], I[2]) , 2.0);\n            cnv[2] = pow(dot(G[2][0], I[0]) + dot(G[2][1], I[1]) + dot(G[2][2], I[2]) , 2.0);\n            cnv[3] = pow(dot(G[3][0], I[0]) + dot(G[3][1], I[1]) + dot(G[3][2], I[2]) , 2.0);\n            cnv[4] = pow(dot(G[4][0], I[0]) + dot(G[4][1], I[1]) + dot(G[4][2], I[2]) , 2.0);\n            cnv[5] = pow(dot(G[5][0], I[0]) + dot(G[5][1], I[1]) + dot(G[5][2], I[2]) , 2.0);\n            cnv[6] = pow(dot(G[6][0], I[0]) + dot(G[6][1], I[1]) + dot(G[6][2], I[2]) , 2.0);\n            cnv[7] = pow(dot(G[7][0], I[0]) + dot(G[7][1], I[1]) + dot(G[7][2], I[2]) , 2.0);\n            cnv[8] = pow(dot(G[8][0], I[0]) + dot(G[8][1], I[1]) + dot(G[8][2], I[2]) , 2.0);\n\n            float M = (cnv[0] + cnv[1]) + (cnv[2] + cnv[3]);\n            float S = (cnv[4] + cnv[5]) + (cnv[6] + cnv[7]) + (cnv[8] + M);\n\n            vec3 p = vec3(sqrt(M/S)) * 2.0;\n            p.r = float(floor(pixel.r * 5.0 ) / 5.0) - p.r;\n            p.g = float(floor(pixel.g * 5.0 ) / 5.0) - p.g;\n            p.b = float(floor(pixel.b * 5.0 ) / 5.0) - p.b;\n\n            vec4 newColour = vec4(p.rgb, 1.0 );\n        ";
-        }
-    }, {
-        key: "palette256Body",
-        get: function get() {
-            return "\n            pixel.r = float(floor(pixel.r * 5.0 ) / 5.0);\n            pixel.g = float(floor(pixel.g * 5.0 ) / 5.0);\n            pixel.b = float(floor(pixel.b * 5.0 ) / 5.0);\n\n            vec4 newColour = vec4(pixel.rgb, 1.0);\n        ";
         }
     }]);
 
@@ -446,6 +472,35 @@ window.addEventListener("load", function () {
     controlMenuToggle.addEventListener("click", function () {
         return controlsRoot.classList.toggle("open");
     });
+
+    /* Temp */
+    /* ==== */
+    invertedCheckbox.addEventListener("click", function () {
+        return toggleInverted();
+    });
+    reducedColoursCheckbox.addEventListener("click", function () {
+        return toggleReducedColours();
+    });
+    backgroundCheckbox.addEventListener("click", function () {
+        return toggleBackground(!Filters.hasBackground);
+    });
+
+    setBlueEdgesButton.addEventListener("click", function () {
+        setEdgeColour({ r: 0, g: 0, b: 255 });
+    });
+    setGreenEdgesButton.addEventListener("click", function () {
+        setEdgeColour({ r: 0, g: 255, b: 0 });
+    });
+
+    setRedBackgroundButton.addEventListener("click", function () {
+        setSurfaceColour({ r: 255, g: 0, b: 0 });
+        toggleBackground();
+    });
+    setYellowBackgroundButton.addEventListener("click", function () {
+        setSurfaceColour({ r: 255, g: 255, b: 0 });
+        toggleBackground();
+    });
+    /* ==== */
 });
 
 //# sourceMappingURL=websight.concat.js.map

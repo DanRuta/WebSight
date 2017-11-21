@@ -246,11 +246,38 @@ window.addEventListener("load", () => {
         boxMaterial.uniforms.edgeB.value = b / 255
     }
 
+    // For reverting to, when toggling back to colour, from background
+    const surfaceCache = {}
+
     window.setSurfaceColour = ({r=0, g=0, b=0}) => {
-        boxMaterial.uniforms.surfaceR.value = r / 255
-        boxMaterial.uniforms.surfaceG.value = g / 255
-        boxMaterial.uniforms.surfaceB.value = b / 255
+        boxMaterial.uniforms.surfaceR.value = surfaceCache.r = r / 255
+        boxMaterial.uniforms.surfaceG.value = surfaceCache.g = g / 255
+        boxMaterial.uniforms.surfaceB.value = surfaceCache.b = b / 255
     }
+
+    window.toggleReducedColours = () => {
+        Filters.hasReducedColours = !Filters.hasReducedColours
+        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader)
+        boxMaterial.needsUpdate = true
+    }
+
+    window.toggleBackground = isBackground => {
+        Filters.hasBackground = !!isBackground
+
+        if (Filters.hasBackground) {
+            boxMaterial.uniforms.surfaceR.value = 0
+            boxMaterial.uniforms.surfaceG.value = 0
+            boxMaterial.uniforms.surfaceB.value = 0
+        } else {
+            boxMaterial.uniforms.surfaceR.value = surfaceCache.r
+            boxMaterial.uniforms.surfaceG.value = surfaceCache.g
+            boxMaterial.uniforms.surfaceB.value = surfaceCache.b
+        }
+
+        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader)
+        boxMaterial.needsUpdate = true
+    }
+
 })
 
 "use strict"
@@ -258,7 +285,7 @@ window.addEventListener("load", () => {
 class Filters {
 
     static get availableFilters () {
-        return ["No effect", "Sobel 3x3", "Sobel 5x5", "Frei-Chen", "Frei-Chen 256",  "Palette 256"]
+        return ["No effect", "Sobel 3x3", "Sobel 5x5", "Frei-Chen"]
     }
 
     static compileShader (name) {
@@ -290,9 +317,13 @@ class Filters {
 
                     ${this[name+"Body"]}
 
-                    ${this.isInverted ? this.invertedBody : ""}
+                    gl_FragColor = newColour*(1.0-intensity) + pixel*intensity;
 
-                    gl_FragColor = newColour*(1.0-intensity) + pixel*intensity;;
+                    ${this.hasBackground ? this.addBackground : ""}
+
+                    ${this.hasReducedColours ? this.reducedColoursBody : ""}
+
+                    ${this.isInverted ? this.invertedBody : ""}
 
                 } else {
                     gl_FragColor = vec4(pixel.rgb, 1.0);
@@ -304,6 +335,28 @@ class Filters {
 
     static get noeffectBody () {
         return `vec4 newColour = vec4(pixel.rgb, 1.0);`
+    }
+
+    static get invertedBody () {
+        return `
+            gl_FragColor.rgb = 1.0 - gl_FragColor.rgb;
+        `
+    }
+
+    static get reducedColoursBody () {
+        return `
+            gl_FragColor.r = float(floor(gl_FragColor.r * 5.0 ) / 5.0);
+            gl_FragColor.g = float(floor(gl_FragColor.g * 5.0 ) / 5.0);
+            gl_FragColor.b = float(floor(gl_FragColor.b * 5.0 ) / 5.0);
+        `
+    }
+
+    static get addBackground () {
+        return `
+            gl_FragColor.r += pixel.r * 0.9;
+            gl_FragColor.g += pixel.g * 0.9;
+            gl_FragColor.b += pixel.b * 0.9;
+        `
     }
 
     /*
@@ -389,12 +442,6 @@ class Filters {
         `
     }
 
-    static get invertedBody () {
-        return `
-            newColour.rgb = 1.0 - newColour.rgb;
-        `
-    }
-
     static get freichenBody () {
         return `
 
@@ -444,67 +491,6 @@ class Filters {
             freiChen.b = surfaceB * (1.0 - freiChen.b) + freiChen.b * edgeB;
 
             vec4 newColour = vec4(freiChen, 1.0 );
-        `
-    }
-
-    static get freichen256Body () {
-        return `
-            vec2 texel = vec2(1.0 / width, 1.0 / height);
-            mat3 I;
-            mat3 G[9];
-            float cnv[9];
-
-            G[0] = mat3( 0.3535533845424652, 0, -0.3535533845424652, 0.5, 0, -0.5, 0.3535533845424652, 0, -0.3535533845424652 );
-            G[1] = mat3( 0.3535533845424652, 0.5, 0.3535533845424652, 0, 0, 0, -0.3535533845424652, -0.5, -0.3535533845424652 );
-            G[2] = mat3( 0, 0.3535533845424652, -0.5, -0.3535533845424652, 0, 0.3535533845424652, 0.5, -0.3535533845424652, 0 );
-            G[3] = mat3( 0.5, -0.3535533845424652, 0, -0.3535533845424652, 0, 0.3535533845424652, 0, 0.3535533845424652, -0.5 );
-            G[4] = mat3( 0, -0.5, 0, 0.5, 0, 0.5, 0, -0.5, 0 );
-            G[5] = mat3( -0.5, 0, 0.5, 0, 0, 0, 0.5, 0, -0.5 );
-            G[6] = mat3( 0.1666666716337204, -0.3333333432674408, 0.1666666716337204, -0.3333333432674408, 0.6666666865348816, -0.3333333432674408, 0.1666666716337204, -0.3333333432674408, 0.1666666716337204 );
-            G[7] = mat3( -0.3333333432674408, 0.1666666716337204, -0.3333333432674408, 0.1666666716337204, 0.6666666865348816, 0.1666666716337204, -0.3333333432674408, 0.1666666716337204, -0.3333333432674408 );
-            G[8] = mat3( 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408 );
-
-            // Get intensity
-            I[0][0] = length(texture2D(texture, vUv + texel * vec2(-1.0,-1.0) ).rgb);
-            I[0][1] = length(texture2D(texture, vUv + texel * vec2(-1.0,0.0) ).rgb);
-            I[0][2] = length(texture2D(texture, vUv + texel * vec2(-1.0,1.0) ).rgb);
-            I[1][0] = length(texture2D(texture, vUv + texel * vec2(0.0,-1.0) ).rgb);
-            I[1][1] = length(texture2D(texture, vUv + texel * vec2(0.0,0.0) ).rgb);
-            I[1][2] = length(texture2D(texture, vUv + texel * vec2(0.0,1.0) ).rgb);
-            I[2][0] = length(texture2D(texture, vUv + texel * vec2(1.0,-1.0) ).rgb);
-            I[2][1] = length(texture2D(texture, vUv + texel * vec2(1.0,0.0) ).rgb);
-            I[2][2] = length(texture2D(texture, vUv + texel * vec2(1.0,1.0) ).rgb);
-
-            // Convolve
-            cnv[0] = pow(dot(G[0][0], I[0]) + dot(G[0][1], I[1]) + dot(G[0][2], I[2]) , 2.0);
-            cnv[1] = pow(dot(G[1][0], I[0]) + dot(G[1][1], I[1]) + dot(G[1][2], I[2]) , 2.0);
-            cnv[2] = pow(dot(G[2][0], I[0]) + dot(G[2][1], I[1]) + dot(G[2][2], I[2]) , 2.0);
-            cnv[3] = pow(dot(G[3][0], I[0]) + dot(G[3][1], I[1]) + dot(G[3][2], I[2]) , 2.0);
-            cnv[4] = pow(dot(G[4][0], I[0]) + dot(G[4][1], I[1]) + dot(G[4][2], I[2]) , 2.0);
-            cnv[5] = pow(dot(G[5][0], I[0]) + dot(G[5][1], I[1]) + dot(G[5][2], I[2]) , 2.0);
-            cnv[6] = pow(dot(G[6][0], I[0]) + dot(G[6][1], I[1]) + dot(G[6][2], I[2]) , 2.0);
-            cnv[7] = pow(dot(G[7][0], I[0]) + dot(G[7][1], I[1]) + dot(G[7][2], I[2]) , 2.0);
-            cnv[8] = pow(dot(G[8][0], I[0]) + dot(G[8][1], I[1]) + dot(G[8][2], I[2]) , 2.0);
-
-            float M = (cnv[0] + cnv[1]) + (cnv[2] + cnv[3]);
-            float S = (cnv[4] + cnv[5]) + (cnv[6] + cnv[7]) + (cnv[8] + M);
-
-            vec3 p = vec3(sqrt(M/S)) * 2.0;
-            p.r = float(floor(pixel.r * 5.0 ) / 5.0) - p.r;
-            p.g = float(floor(pixel.g * 5.0 ) / 5.0) - p.g;
-            p.b = float(floor(pixel.b * 5.0 ) / 5.0) - p.b;
-
-            vec4 newColour = vec4(p.rgb, 1.0 );
-        `
-    }
-
-    static get palette256Body () {
-        return `
-            pixel.r = float(floor(pixel.r * 5.0 ) / 5.0);
-            pixel.g = float(floor(pixel.g * 5.0 ) / 5.0);
-            pixel.b = float(floor(pixel.b * 5.0 ) / 5.0);
-
-            vec4 newColour = vec4(pixel.rgb, 1.0);
         `
     }
 }
@@ -610,6 +596,27 @@ window.addEventListener("load", () => {
 
     const controlMenuToggle = document.querySelector("#controls .toggle")
     controlMenuToggle.addEventListener("click", () => controlsRoot.classList.toggle("open"))
+
+
+    /* Temp */
+    /* ==== */
+    invertedCheckbox.addEventListener("click", () => toggleInverted())
+    reducedColoursCheckbox.addEventListener("click", () => toggleReducedColours())
+    backgroundCheckbox.addEventListener("click", () => toggleBackground(!Filters.hasBackground))
+
+    setBlueEdgesButton.addEventListener("click", () => {setEdgeColour({r: 0, g: 0, b: 255})})
+    setGreenEdgesButton.addEventListener("click", () => {setEdgeColour({r: 0, g: 255, b: 0})})
+
+    setRedBackgroundButton.addEventListener("click", () => {
+        setSurfaceColour({r: 255, g: 0, b: 0})
+        toggleBackground()
+    })
+    setYellowBackgroundButton.addEventListener("click", () => {
+        setSurfaceColour({r: 255, g: 255, b: 0})
+        toggleBackground()
+    })
+    /* ==== */
+
 })
 
 //# sourceMappingURL=websight.concat.js.map

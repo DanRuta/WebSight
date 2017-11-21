@@ -100,4 +100,25 @@ window.addEventListener("load", () => {
 
     const controlMenuToggle = document.querySelector("#controls .toggle")
     controlMenuToggle.addEventListener("click", () => controlsRoot.classList.toggle("open"))
+
+
+    /* Temp */
+    /* ==== */
+    invertedCheckbox.addEventListener("click", () => toggleInverted())
+    reducedColoursCheckbox.addEventListener("click", () => toggleReducedColours())
+    backgroundCheckbox.addEventListener("click", () => toggleBackground(!Filters.hasBackground))
+
+    setBlueEdgesButton.addEventListener("click", () => {setEdgeColour({r: 0, g: 0, b: 255})})
+    setGreenEdgesButton.addEventListener("click", () => {setEdgeColour({r: 0, g: 255, b: 0})})
+
+    setRedBackgroundButton.addEventListener("click", () => {
+        setSurfaceColour({r: 255, g: 0, b: 0})
+        toggleBackground()
+    })
+    setYellowBackgroundButton.addEventListener("click", () => {
+        setSurfaceColour({r: 255, g: 255, b: 0})
+        toggleBackground()
+    })
+    /* ==== */
+
 })
