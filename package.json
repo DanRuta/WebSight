@@ -1,26 +1,27 @@
 {
-  "name": "sobel-sight",
+  "name": "WebSight",
   "version": "1.0.0",
   "description": "Browser based real time edge detection in VR video pass-through, for the visually impaired",
   "scripts": {
+    "start": "node server",
     "lint": "eslint dev/*.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/DanRuta/sobel-sight.git"
+    "url": "git+https://github.com/DanRuta/WebSight.git"
   },
   "keywords": [],
-  "main": "dist/sobel-sight-js.min.js",
+  "main": "dist/websight.min.js",
   "author": "Dan Ruta, Louis Jordan, Tom James Fox",
   "license": "MIT",
   "directories": {},
   "bugs": {
-    "url": "https://github.com/DanRuta/sobel-sight/issues"
+    "url": "https://github.com/DanRuta/WebSight/issues"
   },
   "engines": {
     "node": ">= 8.4.0"
   },
-  "homepage": "https://github.com/DanRuta/sobel-sight#readme",
+  "homepage": "https://github.com/DanRuta/WebSight#readme",
   "devDependencies": {
     "babel-preset-env": "^1.6.1",
     "babelify": "^7.3.0",
