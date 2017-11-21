@@ -219,7 +219,7 @@ window.addEventListener("load", () => {
 class Filters {
 
     static get availableFilters () {
-        return ["Sobel 3x3", "Sobel 5x5", "Frei-Chen", "Frei-Chen 256",  "Palette 256"]
+        return ["No effect", "Sobel 3x3", "Sobel 5x5", "Frei-Chen", "Frei-Chen 256",  "Palette 256"]
     }
 
     static compileShader (name) {
@@ -243,16 +243,20 @@ class Filters {
 
                     ${this[name+"Body"]}
 
+                    ${this.isInverted ? this.invertedBody : ""}
+
                     gl_FragColor = newColour*(1.0-intensity) + pixel*intensity;;
 
                 } else {
                     gl_FragColor = vec4(pixel.rgb, 1.0);
                 }
 
-                ${this.isInverted ? this.invertedBody : ""}
-
             }
         `
+    }
+
+    static get noeffectBody () {
+        return `vec4 newColour = vec4(pixel.rgb, 1.0);`
     }
 
     /*
@@ -328,7 +332,7 @@ class Filters {
 
     static get invertedBody () {
         return `
-            gl_FragColor.rgb = 1.0 - gl_FragColor.rgb;
+            newColour.rgb = 1.0 - newColour.rgb;
         `
     }
 
