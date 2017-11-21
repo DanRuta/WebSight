@@ -96,6 +96,30 @@ window.addEventListener("load", () => {
                 intensity: {
                     type: "f",
                     value: 1.0
+                },
+                edgeR: {
+                    type: "f",
+                    value: 1.0
+                },
+                edgeG: {
+                    type: "f",
+                    value: 1.0
+                },
+                edgeB: {
+                    type: "f",
+                    value: 1.0
+                },
+                surfaceR: {
+                    type: "f",
+                    value: 0.0
+                },
+                surfaceG: {
+                    type: "f",
+                    value: 0.0
+                },
+                surfaceB: {
+                    type: "f",
+                    value: 0.0
                 }
             },
             vertexShader: vertexShaderSource.text,
@@ -201,15 +225,30 @@ window.addEventListener("load", () => {
         boxMaterial.fragmentShader = Filters.compileShader(shader)
         boxMaterial.needsUpdate = true
     }
+
     window.setRadius = val => {
         boxMaterial.uniforms.radius.value = val
     }
+
     window.setIntensity = val => {
         boxMaterial.uniforms.intensity.value = 1 - val
     }
+
     window.toggleInverted = () => {
         Filters.isInverted = !Filters.isInverted
         boxMaterial.fragmentShader = Filters.compileShader(Filters.shader)
         boxMaterial.needsUpdate = true
+    }
+
+    window.setEdgeColour = ({r=0, g=0, b=0}) => {
+        boxMaterial.uniforms.edgeR.value = r / 255
+        boxMaterial.uniforms.edgeG.value = g / 255
+        boxMaterial.uniforms.edgeB.value = b / 255
+    }
+
+    window.setSurfaceColour = ({r=0, g=0, b=0}) => {
+        boxMaterial.uniforms.surfaceR.value = r / 255
+        boxMaterial.uniforms.surfaceG.value = g / 255
+        boxMaterial.uniforms.surfaceB.value = b / 255
     }
 })

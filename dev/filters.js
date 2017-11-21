@@ -16,6 +16,14 @@ class Filters {
             uniform vec2 resolution;
             varying vec2 vUv;
 
+            uniform float edgeR;
+            uniform float edgeG;
+            uniform float edgeB;
+
+            uniform float surfaceR;
+            uniform float surfaceG;
+            uniform float surfaceB;
+
             void main() {
 
                 float w = 1.0 / width;
@@ -71,7 +79,12 @@ class Filters {
             sobel_y.g = avg_y;
             sobel_y.b = avg_y;
 
-            vec4 newColour = vec4( sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)), 1.0 );
+            vec3 sobel = vec3(sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)));
+            sobel.r = surfaceR * (1.0 - sobel.r) + sobel.r * edgeR;
+            sobel.g = surfaceG * (1.0 - sobel.g) + sobel.g * edgeG;
+            sobel.b = surfaceB * (1.0 - sobel.b) + sobel.b * edgeB;
+
+            vec4 newColour = vec4( sobel, 1.0 );
         `
     }
 
@@ -104,13 +117,20 @@ class Filters {
 
             float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0 / 9.0;
             float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0 / 9.0;
+
             sobel_x.r = avg_x;
             sobel_x.g = avg_x;
             sobel_x.b = avg_x;
             sobel_y.r = avg_y;
             sobel_y.g = avg_y;
             sobel_y.b = avg_y;
-            vec4 newColour = vec4( sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)), 1.0 );
+
+            vec3 sobel = vec3(sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)));
+            sobel.r = surfaceR * (1.0 - sobel.r) + sobel.r * edgeR;
+            sobel.g = surfaceG * (1.0 - sobel.g) + sobel.g * edgeG;
+            sobel.b = surfaceB * (1.0 - sobel.b) + sobel.b * edgeB;
+
+            vec4 newColour = vec4(sobel, 1.0 );
         `
     }
 
@@ -163,7 +183,12 @@ class Filters {
             float M = (cnv[0] + cnv[1]) + (cnv[2] + cnv[3]);
             float S = (cnv[4] + cnv[5]) + (cnv[6] + cnv[7]) + (cnv[8] + M);
 
-            vec4 newColour = vec4(vec3(sqrt(M/S)) * 2.0, 1.0 );
+            vec3 freiChen = vec3(sqrt(M/S)) * 2.0;
+            freiChen.r = surfaceR * (1.0 - freiChen.r) + freiChen.r * edgeR;
+            freiChen.g = surfaceG * (1.0 - freiChen.g) + freiChen.g * edgeG;
+            freiChen.b = surfaceB * (1.0 - freiChen.b) + freiChen.b * edgeB;
+
+            vec4 newColour = vec4(freiChen, 1.0 );
         `
     }
 

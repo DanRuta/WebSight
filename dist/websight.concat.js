@@ -96,6 +96,30 @@ window.addEventListener("load", () => {
                 intensity: {
                     type: "f",
                     value: 1.0
+                },
+                edgeR: {
+                    type: "f",
+                    value: 1.0
+                },
+                edgeG: {
+                    type: "f",
+                    value: 1.0
+                },
+                edgeB: {
+                    type: "f",
+                    value: 1.0
+                },
+                surfaceR: {
+                    type: "f",
+                    value: 0.0
+                },
+                surfaceG: {
+                    type: "f",
+                    value: 0.0
+                },
+                surfaceB: {
+                    type: "f",
+                    value: 0.0
                 }
             },
             vertexShader: vertexShaderSource.text,
@@ -201,16 +225,31 @@ window.addEventListener("load", () => {
         boxMaterial.fragmentShader = Filters.compileShader(shader)
         boxMaterial.needsUpdate = true
     }
+
     window.setRadius = val => {
         boxMaterial.uniforms.radius.value = val
     }
+
     window.setIntensity = val => {
         boxMaterial.uniforms.intensity.value = 1 - val
     }
+
     window.toggleInverted = () => {
         Filters.isInverted = !Filters.isInverted
         boxMaterial.fragmentShader = Filters.compileShader(Filters.shader)
         boxMaterial.needsUpdate = true
+    }
+
+    window.setEdgeColour = ({r=0, g=0, b=0}) => {
+        boxMaterial.uniforms.edgeR.value = r / 255
+        boxMaterial.uniforms.edgeG.value = g / 255
+        boxMaterial.uniforms.edgeB.value = b / 255
+    }
+
+    window.setSurfaceColour = ({r=0, g=0, b=0}) => {
+        boxMaterial.uniforms.surfaceR.value = r / 255
+        boxMaterial.uniforms.surfaceG.value = g / 255
+        boxMaterial.uniforms.surfaceB.value = b / 255
     }
 })
 
@@ -231,6 +270,14 @@ class Filters {
             uniform float intensity;
             uniform vec2 resolution;
             varying vec2 vUv;
+
+            uniform float edgeR;
+            uniform float edgeG;
+            uniform float edgeB;
+
+            uniform float surfaceR;
+            uniform float surfaceG;
+            uniform float surfaceB;
 
             void main() {
 
@@ -287,7 +334,12 @@ class Filters {
             sobel_y.g = avg_y;
             sobel_y.b = avg_y;
 
-            vec4 newColour = vec4( sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)), 1.0 );
+            vec3 sobel = vec3(sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)));
+            sobel.r = surfaceR * (1.0 - sobel.r) + sobel.r * edgeR;
+            sobel.g = surfaceG * (1.0 - sobel.g) + sobel.g * edgeG;
+            sobel.b = surfaceB * (1.0 - sobel.b) + sobel.b * edgeB;
+
+            vec4 newColour = vec4( sobel, 1.0 );
         `
     }
 
@@ -320,13 +372,20 @@ class Filters {
 
             float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0 / 9.0;
             float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0 / 9.0;
+
             sobel_x.r = avg_x;
             sobel_x.g = avg_x;
             sobel_x.b = avg_x;
             sobel_y.r = avg_y;
             sobel_y.g = avg_y;
             sobel_y.b = avg_y;
-            vec4 newColour = vec4( sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)), 1.0 );
+
+            vec3 sobel = vec3(sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)));
+            sobel.r = surfaceR * (1.0 - sobel.r) + sobel.r * edgeR;
+            sobel.g = surfaceG * (1.0 - sobel.g) + sobel.g * edgeG;
+            sobel.b = surfaceB * (1.0 - sobel.b) + sobel.b * edgeB;
+
+            vec4 newColour = vec4(sobel, 1.0 );
         `
     }
 
@@ -379,7 +438,12 @@ class Filters {
             float M = (cnv[0] + cnv[1]) + (cnv[2] + cnv[3]);
             float S = (cnv[4] + cnv[5]) + (cnv[6] + cnv[7]) + (cnv[8] + M);
 
-            vec4 newColour = vec4(vec3(sqrt(M/S)) * 2.0, 1.0 );
+            vec3 freiChen = vec3(sqrt(M/S)) * 2.0;
+            freiChen.r = surfaceR * (1.0 - freiChen.r) + freiChen.r * edgeR;
+            freiChen.g = surfaceG * (1.0 - freiChen.g) + freiChen.g * edgeG;
+            freiChen.b = surfaceB * (1.0 - freiChen.b) + freiChen.b * edgeB;
+
+            vec4 newColour = vec4(freiChen, 1.0 );
         `
     }
 
