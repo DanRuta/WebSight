@@ -270,6 +270,7 @@ window.addEventListener("load", function () {
     };
 
     window.toggleBackground = function (isBackground) {
+
         Filters.hasBackground = !!isBackground;
 
         if (Filters.hasBackground) {
@@ -387,48 +388,14 @@ window.addEventListener("load", function () {
     }, []);
 
     // Radius slider
-    var radiusSlider = document.createElement("input");
-    radiusSlider.id = "radiusSlider";
-    radiusSlider.type = "range";
-    radiusSlider.name = "radius";
+    var radiusSlider = document.getElementById("radius-slider");
+    var radiusValue = document.getElementById("radius-value");
     radiusSlider.value = parseInt(window.localStorage.getItem("radius")) || 50;
-    radiusSlider.min = 0;
-    radiusSlider.max = 100;
-    radiusSlider.step = 1;
-
-    // Radius slider label
-    var radiusLabel = document.createElement("label");
-    radiusLabel.for = "radius";
-    radiusLabel.innerText = "Radius: ";
-
-    // Radius slider value
-    var radiusValue = document.createElement("span");
-    radiusValue.innerText = "50%";
-
-    radiusLabel.appendChild(radiusSlider);
-    radiusLabel.appendChild(radiusValue);
-    slidersRoot.appendChild(radiusLabel);
 
     // Intensity slider
-    var intensitySlider = document.createElement("input");
-    intensitySlider.id = "intensitySlider";
-    intensitySlider.type = "range";
-    intensitySlider.name = "intensity";
+    var intensitySlider = document.getElementById("intensity-slider");
+    var intensityValue = document.getElementById("intensity-value");
     intensitySlider.value = parseInt(window.localStorage.getItem("intensity")) || 100;
-    intensitySlider.min = 0;
-    intensitySlider.max = 100;
-    intensitySlider.step = 1;
-
-    var intensityLabel = document.createElement("label");
-    intensityLabel.for = "intensity";
-    intensityLabel.innerText = "Intensity: ";
-
-    var intensityValue = document.createElement("span");
-    intensityValue.innerText = "100%";
-
-    intensityLabel.appendChild(intensitySlider);
-    intensityLabel.appendChild(intensityValue);
-    slidersRoot.appendChild(intensityLabel);
 
     // Events
     document.addEventListener("click", function (_ref3) {
@@ -473,34 +440,28 @@ window.addEventListener("load", function () {
         return controlsRoot.classList.toggle("open");
     });
 
-    /* Temp */
-    /* ==== */
     invertedCheckbox.addEventListener("click", function () {
         return toggleInverted();
     });
     reducedColoursCheckbox.addEventListener("click", function () {
         return toggleReducedColours();
     });
-    backgroundCheckbox.addEventListener("click", function () {
+    surfaceCheckbox.addEventListener("click", function () {
         return toggleBackground(!Filters.hasBackground);
     });
 
-    setBlueEdgesButton.addEventListener("click", function () {
-        setEdgeColour({ r: 0, g: 0, b: 255 });
-    });
-    setGreenEdgesButton.addEventListener("click", function () {
-        setEdgeColour({ r: 0, g: 255, b: 0 });
-    });
+    var edgePicker = document.getElementById("edge-picker");
+    var surfacePicker = document.getElementById("surface-picker");
 
-    setRedBackgroundButton.addEventListener("click", function () {
-        setSurfaceColour({ r: 255, g: 0, b: 0 });
-        toggleBackground();
-    });
-    setYellowBackgroundButton.addEventListener("click", function () {
-        setSurfaceColour({ r: 255, g: 255, b: 0 });
-        toggleBackground();
-    });
-    /* ==== */
+    window.updateColour = function (type, jscolor) {
+        var rgb = {
+            r: Math.floor(jscolor.rgb[0]),
+            g: Math.floor(jscolor.rgb[1]),
+            b: Math.floor(jscolor.rgb[2])
+        };
+
+        type === 'edge' ? window.setEdgeColour(rgb) : window.setSurfaceColour(rgb);
+    };
 });
 
 //# sourceMappingURL=websight.concat.js.map
