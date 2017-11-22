@@ -37,22 +37,23 @@
 
             #controls {
                 max-width: 790px;
-                height: 100px;
+                height: auto;
                 margin: 0 auto;
-                padding: 5px;
+                padding: 10px;
 
-                background: rgba(255,255,255, 0.3);
+                background: rgba(255,255,255, 0.4);
                 border-radius: 3px;
+                font-size: 120%;
 
-                transform: translateY(-100px);
+                transform: translateY(-95%);
                 transition: transform 500ms ease;
             }
 
             #controls.open { transform: translateY(0); }
 
             #controls .filters {
-                overflow-x: scroll;
                 display: flex;
+                justify-content: center;
                 flex-flow: row nowrap;
             }
 
@@ -85,7 +86,10 @@
                 border: 0;
                 outline: 0;
                 display: block;
-                margin: 0 auto;
+                position: absolute;
+                bottom: -50px;
+                left:50%;
+                margin-left:-25px;
                 transform: rotateX(0);
                 transition: transform 500ms ease;
             }
@@ -102,9 +106,18 @@
                 background-image: url(./images/cardboard64.png);
                 background-size: cover;
                 background-repeat: no-repeat;
+                transition: transform 300ms ease;
             }
-            #enterVRButton, svg {
-                filter: drop-shadow(0 5px 5px black);
+
+            #enterVRButton,
+            svg,
+            #controls label,
+            #controls button {
+                filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.5));
+            }
+            label[for="radius-slider"] {
+                display: flex;
+                align-items: center;
             }
 
             #enterVRButton.small {
@@ -123,14 +136,72 @@
             .filter-button:disabled {
                 opacity: 0.5;
             }
+
+            #controls .colours input {
+                height: 30px;
+                max-width: 90px;
+                margin: 0 10px;
+                font-size: 1.3em;
+            }
+
+            #controls .colours {
+                display: flex;
+                flex-flow: row nowrap;
+                justify-content: center;
+            }
+
+            #controls .colours > div {
+                flex-grow: 1;
+                width: 50%;
+                display: flex;
+                flex-flow: column nowrap;
+                justify-content: space-around;
+                margin: 0 10px;
+            }
+
+            #controls .colours .colour-checkboxes {
+                text-align: right;
+            }
+
+            #controls .colours label {
+                line-height: 20px;
+            }
+
+            #controls .colours input,
+            #controls .colours span {
+                vertical-align: middle;
+            }
+
+            input[type="checkbox"] {
+                height: 20px;
+                width: 20px;
+            }
+
         </style>
     </head>
     <body>
         <div class="ui-container">
             <div id="enterVRButton"></div>
             <div id="controls">
-                <span class="filters"></span>
-                <span class="sliders"></span>
+                <div class="filters"></div>
+                <div class="sliders">
+                    <label for="radius-slider">Radius: <input type="range" id="radius-slider" min="0" max="100" step="1"> <span id="radius-value"></span></label>
+                    <label for="intensity-slider">Intensity: <input type="range" id="intensity-slider" min="0" max="100" step="1"> <span id="intensity-value"></span></label>
+                </div>
+
+                <div class="colours">
+                    <div class="colour-checkboxes">
+                        <label for="invertedCheckbox"><span>Inverted</span><input id="invertedCheckbox" type="checkbox"></label>
+                        <label for="reducedColoursCheckbox"><span>Reduced Colours</span><input id="reducedColoursCheckbox" type="checkbox"></label>
+                        <label for="surfaceCheckbox"><span>Surface Colours</span><input id="surfaceCheckbox" type="checkbox" checked></label>
+                    </div>
+
+                    <div class="colour-pickers">
+                        <label for="edge-picker"><input id="edge-picker" class="jscolor {onFineChange: 'updateColour(\'edge\', this)', valueElement: 'edge-picker'}" value="FFFFFF" readonly><span>Edge Colour</span></label>
+                        <label for="surface=picker"><input id="surface-picker" class="jscolor {onFineChange: 'updateColour(\'surface\', this)', valueElement: 'surface-picker'}" value="000000" readonly><span>Background Colour</span></label>
+                    </div>
+                </div>
+
                 <button class="toggle">
                     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 129 129">
                         <g>

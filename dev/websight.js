@@ -120,7 +120,15 @@ window.addEventListener("load", () => {
                 surfaceB: {
                     type: "f",
                     value: 0.0
-                }
+                },
+                lightCols: {
+                    type: "t",
+                    value: [...new Array(25)].map(v => Math.floor(Math.random()*10*video.width/60))
+                },
+                lightColsEnds: {
+                    type: "t",
+                    value: [...new Array(60)].map(v => Math.floor(Math.random()*10*video.height/50))
+                },
             },
             vertexShader: vertexShaderSource.text,
             fragmentShader: Filters.compileShader("sobel3x3")
@@ -192,6 +200,10 @@ window.addEventListener("load", () => {
             texture.needsUpdate = true
         }
 
+        if (Filters.matrix) {
+            boxMaterial.uniforms.lightColsEnds.value = boxMaterial.uniforms.lightColsEnds.value.map(v => v -= Math.random()/2)
+        }
+
         effect.render(scene, camera)
     }
     render()
@@ -246,9 +258,63 @@ window.addEventListener("load", () => {
         boxMaterial.uniforms.edgeB.value = b / 255
     }
 
+    // For reverting to, when toggling back to colour, from background
+    const surfaceCache = {r: 0, g: 0, b: 0}
+
     window.setSurfaceColour = ({r=0, g=0, b=0}) => {
-        boxMaterial.uniforms.surfaceR.value = r / 255
-        boxMaterial.uniforms.surfaceG.value = g / 255
-        boxMaterial.uniforms.surfaceB.value = b / 255
+        boxMaterial.uniforms.surfaceR.value = surfaceCache.r = r / 255
+        boxMaterial.uniforms.surfaceG.value = surfaceCache.g = g / 255
+        boxMaterial.uniforms.surfaceB.value = surfaceCache.b = b / 255
     }
+
+    window.toggleReducedColours = () => {
+        Filters.hasReducedColours = !Filters.hasReducedColours
+        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader)
+        boxMaterial.needsUpdate = true
+    }
+
+    window.toggleBackground = isBackground => {
+
+        Filters.hasBackground = !!isBackground
+
+        if (Filters.hasBackground) {
+            boxMaterial.uniforms.surfaceR.value = 0
+            boxMaterial.uniforms.surfaceG.value = 0
+            boxMaterial.uniforms.surfaceB.value = 0
+        } else {
+            boxMaterial.uniforms.surfaceR.value = surfaceCache.r
+            boxMaterial.uniforms.surfaceG.value = surfaceCache.g
+            boxMaterial.uniforms.surfaceB.value = surfaceCache.b
+        }
+
+        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader)
+        boxMaterial.needsUpdate = true
+    }
+
+    window.toggleMatrix = () => {
+
+        Filters.matrix = true
+
+        clearInterval(Filters.matrixInterval)
+
+        toggleBackground(false)
+        setEdgeColour({r: 0, g: 255, b: 0})
+        setIntensity(1)
+        setRadius(1)
+
+        boxMaterial.fragmentShader = Filters.compileShader("matrix")
+        boxMaterial.needsUpdate = true
+
+        Filters.matrixInterval = setInterval(() => {
+
+            for (let i=0; i<boxMaterial.uniforms.lightColsEnds.value.length; i++) {
+                if (boxMaterial.uniforms.lightColsEnds.value[i] < 0) {
+                    boxMaterial.uniforms.lightCols.value[i] = Math.floor(Math.random()*10*video.width/50)
+                    boxMaterial.uniforms.lightColsEnds.value[i] = video.height/5
+                }
+            }
+
+        }, 100)
+    }
+
 })

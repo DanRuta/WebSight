@@ -25,48 +25,14 @@ window.addEventListener("load", () => {
     }, [])
 
     // Radius slider
-    const radiusSlider = document.createElement("input")
-    radiusSlider.id = "radiusSlider"
-    radiusSlider.type = "range"
-    radiusSlider.name = "radius"
+    const radiusSlider = document.getElementById("radius-slider")
+    const radiusValue = document.getElementById("radius-value")
     radiusSlider.value = parseInt(window.localStorage.getItem("radius")) || 50
-    radiusSlider.min = 0
-    radiusSlider.max = 100
-    radiusSlider.step = 1
-
-    // Radius slider label
-    const radiusLabel = document.createElement("label")
-    radiusLabel.for = "radius"
-    radiusLabel.innerText = "Radius: "
-
-    // Radius slider value
-    const radiusValue = document.createElement("span")
-    radiusValue.innerText = "50%"
-
-    radiusLabel.appendChild(radiusSlider)
-    radiusLabel.appendChild(radiusValue)
-    slidersRoot.appendChild(radiusLabel)
 
     // Intensity slider
-    const intensitySlider = document.createElement("input")
-    intensitySlider.id = "intensitySlider"
-    intensitySlider.type = "range"
-    intensitySlider.name = "intensity"
+    const intensitySlider = document.getElementById("intensity-slider")
+    const intensityValue = document.getElementById("intensity-value")
     intensitySlider.value = parseInt(window.localStorage.getItem("intensity")) || 100
-    intensitySlider.min = 0
-    intensitySlider.max = 100
-    intensitySlider.step = 1
-
-    const intensityLabel = document.createElement("label")
-    intensityLabel.for = "intensity"
-    intensityLabel.innerText = "Intensity: "
-
-    const intensityValue = document.createElement("span")
-    intensityValue.innerText = "100%"
-
-    intensityLabel.appendChild(intensitySlider)
-    intensityLabel.appendChild(intensityValue)
-    slidersRoot.appendChild(intensityLabel)
 
     // Events
     document.addEventListener("click", ({ target }) => {
@@ -100,4 +66,27 @@ window.addEventListener("load", () => {
 
     const controlMenuToggle = document.querySelector("#controls .toggle")
     controlMenuToggle.addEventListener("click", () => controlsRoot.classList.toggle("open"))
+
+    invertedCheckbox.addEventListener("click", () => toggleInverted())
+    reducedColoursCheckbox.addEventListener("click", () => toggleReducedColours())
+    surfaceCheckbox.addEventListener("click", () => toggleBackground(!Filters.hasBackground))
+
+    const edgePicker = document.getElementById("edge-picker")
+    const surfacePicker = document.getElementById("surface-picker")
+
+    window.updateColour = (type, jscolor) => {
+        const rgb = {
+            r: Math.floor(jscolor.rgb[0]),
+            g: Math.floor(jscolor.rgb[1]),
+            b: Math.floor(jscolor.rgb[2])
+        }
+
+        type === 'edge' ? window.setEdgeColour(rgb) : window.setSurfaceColour(rgb)
+
+        if (document.querySelector("button[data-filter=sobel3x3]").disabled && rgb.r==0 && rgb.g==255 && rgb.b==0
+            && surfaceCheckbox.checked && !reducedColoursCheckbox.checked && !invertedCheckbox.checked) {
+            toggleMatrix()
+        }
+    }
+
 })
