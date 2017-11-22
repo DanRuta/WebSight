@@ -230,8 +230,8 @@ window.addEventListener("load", function () {
         makeBoxObject();
 
         setShader(document.querySelector(".filter-button:disabled").dataset.filter);
-        setIntensity((parseFloat(document.getElementById("intensitySlider").value) || 0.01) / 100);
-        setRadius(parseFloat(document.getElementById("radiusSlider").value) / 100);
+        setIntensity((parseFloat(document.getElementById("intensity-slider").value) || 0.01) / 100);
+        setRadius(parseFloat(document.getElementById("radius-slider").value) / 100);
     });
 
     window.setShader = function (shader) {
