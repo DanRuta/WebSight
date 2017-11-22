@@ -4,6 +4,8 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 var degToRad = function degToRad(x) {
     return x * Math.PI / 180;
 };
@@ -128,6 +130,18 @@ window.addEventListener("load", function () {
                 surfaceB: {
                     type: "f",
                     value: 0.0
+                },
+                lightCols: {
+                    type: "t",
+                    value: [].concat(_toConsumableArray(new Array(25))).map(function (v) {
+                        return Math.floor(Math.random() * 10 * video.width / 60);
+                    })
+                },
+                lightColsEnds: {
+                    type: "t",
+                    value: [].concat(_toConsumableArray(new Array(60))).map(function (v) {
+                        return Math.floor(Math.random() * 10 * video.height / 50);
+                    })
                 }
             },
             vertexShader: vertexShaderSource.text,
@@ -187,6 +201,12 @@ window.addEventListener("load", function () {
 
         if (video.currentTime) {
             texture.needsUpdate = true;
+        }
+
+        if (Filters.matrix) {
+            boxMaterial.uniforms.lightColsEnds.value = boxMaterial.uniforms.lightColsEnds.value.map(function (v) {
+                return v -= Math.random() / 2;
+            });
         }
 
         effect.render(scene, camera);
@@ -286,6 +306,30 @@ window.addEventListener("load", function () {
         boxMaterial.fragmentShader = Filters.compileShader(Filters.shader);
         boxMaterial.needsUpdate = true;
     };
+
+    window.toggleMatrix = function () {
+        Filters.matrix = !Filters.matrix;
+
+        clearInterval(Filters.matrixInterval);
+
+        toggleBackground(false);
+        setEdgeColour({ r: 0, g: 255, b: 0 });
+        setIntensity(1);
+        setRadius(1);
+
+        boxMaterial.fragmentShader = Filters.compileShader("matrix");
+        boxMaterial.needsUpdate = true;
+
+        Filters.matrixInterval = setInterval(function () {
+            // let i = Math.floor(Math.random()*10)
+            for (var i = 0; i < boxMaterial.uniforms.lightColsEnds.value.length; i++) {
+                if (boxMaterial.uniforms.lightColsEnds.value[i] < 0) {
+                    boxMaterial.uniforms.lightCols.value[i] = Math.floor(Math.random() * 10 * video.width / 50);
+                    boxMaterial.uniforms.lightColsEnds.value[i] = video.height / 5;
+                }
+            }
+        }, 100);
+    };
 });
 
 "use strict";
@@ -298,7 +342,7 @@ var Filters = function () {
     _createClass(Filters, null, [{
         key: "compileShader",
         value: function compileShader(name) {
-            return "\n            uniform sampler2D texture;\n            uniform float width;\n            uniform float height;\n            uniform float radius;\n            uniform float intensity;\n            uniform vec2 resolution;\n            varying vec2 vUv;\n\n            uniform float edgeR;\n            uniform float edgeG;\n            uniform float edgeB;\n\n            uniform float surfaceR;\n            uniform float surfaceG;\n            uniform float surfaceB;\n\n            void main() {\n\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n\n                vec4 pixel = texture2D(texture, vUv);\n\n                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < radius) {\n\n                    " + this[name + "Body"] + "\n\n                    gl_FragColor = newColour*(1.0-intensity) + pixel*intensity;\n\n                    " + (this.hasBackground ? this.addBackground : "") + "\n\n                    " + (this.hasReducedColours ? this.reducedColoursBody : "") + "\n\n                    " + (this.isInverted ? this.invertedBody : "") + "\n\n                } else {\n                    gl_FragColor = vec4(pixel.rgb, 1.0);\n                }\n\n            }\n        ";
+            return "\n            uniform sampler2D texture;\n            uniform float width;\n            uniform float height;\n            uniform float radius;\n            uniform float intensity;\n            uniform vec2 resolution;\n            varying vec2 vUv;\n\n            uniform float edgeR;\n            uniform float edgeG;\n            uniform float edgeB;\n\n            uniform float surfaceR;\n            uniform float surfaceG;\n            uniform float surfaceB;\n\n            uniform float lightCols[5];\n            uniform float lightColsEnds[5];\n\n            float rand(vec2 co){\n                return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);\n            }\n\n            void main() {\n\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n\n                vec4 pixel = texture2D(texture, vUv);\n\n                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < radius) {\n\n                    " + this[name + "Body"] + "\n\n                    gl_FragColor = newColour*(1.0-intensity) + pixel*intensity;\n\n                    " + (this.hasBackground ? this.addBackground : "") + "\n\n                    " + (this.hasReducedColours ? this.reducedColoursBody : "") + "\n\n                    " + (this.isInverted ? this.invertedBody : "") + "\n\n                } else {\n                    gl_FragColor = vec4(pixel.rgb, 1.0);\n                }\n\n            }\n        ";
         }
     }, {
         key: "availableFilters",
@@ -355,6 +399,16 @@ var Filters = function () {
         key: "freichenBody",
         get: function get() {
             return "\n\n            vec2 texel = vec2(1.0 / width, 1.0 / height);\n            mat3 I;\n            mat3 G[9];\n            float cnv[9];\n\n            G[0] = mat3( 0.3535533845424652, 0, -0.3535533845424652, 0.5, 0, -0.5, 0.3535533845424652, 0, -0.3535533845424652 );\n            G[1] = mat3( 0.3535533845424652, 0.5, 0.3535533845424652, 0, 0, 0, -0.3535533845424652, -0.5, -0.3535533845424652 );\n            G[2] = mat3( 0, 0.3535533845424652, -0.5, -0.3535533845424652, 0, 0.3535533845424652, 0.5, -0.3535533845424652, 0 );\n            G[3] = mat3( 0.5, -0.3535533845424652, 0, -0.3535533845424652, 0, 0.3535533845424652, 0, 0.3535533845424652, -0.5 );\n            G[4] = mat3( 0, -0.5, 0, 0.5, 0, 0.5, 0, -0.5, 0 );\n            G[5] = mat3( -0.5, 0, 0.5, 0, 0, 0, 0.5, 0, -0.5 );\n            G[6] = mat3( 0.1666666716337204, -0.3333333432674408, 0.1666666716337204, -0.3333333432674408, 0.6666666865348816, -0.3333333432674408, 0.1666666716337204, -0.3333333432674408, 0.1666666716337204 );\n            G[7] = mat3( -0.3333333432674408, 0.1666666716337204, -0.3333333432674408, 0.1666666716337204, 0.6666666865348816, 0.1666666716337204, -0.3333333432674408, 0.1666666716337204, -0.3333333432674408 );\n            G[8] = mat3( 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408 );\n\n            // Get intensity\n            I[0][0] = length(texture2D(texture, vUv + texel * vec2(-1.0,-1.0) ).rgb);\n            I[0][1] = length(texture2D(texture, vUv + texel * vec2(-1.0,0.0) ).rgb);\n            I[0][2] = length(texture2D(texture, vUv + texel * vec2(-1.0,1.0) ).rgb);\n            I[1][0] = length(texture2D(texture, vUv + texel * vec2(0.0,-1.0) ).rgb);\n            I[1][1] = length(texture2D(texture, vUv + texel * vec2(0.0,0.0) ).rgb);\n            I[1][2] = length(texture2D(texture, vUv + texel * vec2(0.0,1.0) ).rgb);\n            I[2][0] = length(texture2D(texture, vUv + texel * vec2(1.0,-1.0) ).rgb);\n            I[2][1] = length(texture2D(texture, vUv + texel * vec2(1.0,0.0) ).rgb);\n            I[2][2] = length(texture2D(texture, vUv + texel * vec2(1.0,1.0) ).rgb);\n\n            // Convolve\n            cnv[0] = pow(dot(G[0][0], I[0]) + dot(G[0][1], I[1]) + dot(G[0][2], I[2]) , 2.0);\n            cnv[1] = pow(dot(G[1][0], I[0]) + dot(G[1][1], I[1]) + dot(G[1][2], I[2]) , 2.0);\n            cnv[2] = pow(dot(G[2][0], I[0]) + dot(G[2][1], I[1]) + dot(G[2][2], I[2]) , 2.0);\n            cnv[3] = pow(dot(G[3][0], I[0]) + dot(G[3][1], I[1]) + dot(G[3][2], I[2]) , 2.0);\n            cnv[4] = pow(dot(G[4][0], I[0]) + dot(G[4][1], I[1]) + dot(G[4][2], I[2]) , 2.0);\n            cnv[5] = pow(dot(G[5][0], I[0]) + dot(G[5][1], I[1]) + dot(G[5][2], I[2]) , 2.0);\n            cnv[6] = pow(dot(G[6][0], I[0]) + dot(G[6][1], I[1]) + dot(G[6][2], I[2]) , 2.0);\n            cnv[7] = pow(dot(G[7][0], I[0]) + dot(G[7][1], I[1]) + dot(G[7][2], I[2]) , 2.0);\n            cnv[8] = pow(dot(G[8][0], I[0]) + dot(G[8][1], I[1]) + dot(G[8][2], I[2]) , 2.0);\n\n            float M = (cnv[0] + cnv[1]) + (cnv[2] + cnv[3]);\n            float S = (cnv[4] + cnv[5]) + (cnv[6] + cnv[7]) + (cnv[8] + M);\n\n            vec3 freiChen = vec3(sqrt(M/S)) * 2.0;\n            freiChen.r = surfaceR * (1.0 - freiChen.r) + freiChen.r * edgeR;\n            freiChen.g = surfaceG * (1.0 - freiChen.g) + freiChen.g * edgeG;\n            freiChen.b = surfaceB * (1.0 - freiChen.b) + freiChen.b * edgeB;\n\n            vec4 newColour = vec4(freiChen, 1.0 );\n        ";
+        }
+    }, {
+        key: "matrixBody",
+        get: function get() {
+            // 10x10 pixel.g values for '0' and '1'
+            var charData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+            return "\n            float c[" + charData.length + "];\n            " + charData.map(function (d, i) {
+                return "c[" + i + "]=" + d + ".0;";
+            }).join("\n") + "\n\n            // ==============\n            // Edge detection\n            // ==============\n            vec4 m[9];\n\n            for (int i=-1; i<=1; i++) {\n                for (int j=-1; j<=1; j++) {\n                    m[(j+1)+(i+1)*3] = texture2D(texture, vUv + vec2(float(j)*w, float(i)*h) );\n                }\n            }\n\n            vec4 sobel_x = m[2] + (2.0*m[5]) + m[8] - (m[0] + (2.0*m[3]) + m[6]);\n            vec4 sobel_y = m[0] + (2.0*m[1]) + m[2] - (m[6] + (2.0*m[7]) + m[8]);\n\n            float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0;\n            float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0;\n\n            sobel_x.r = avg_x;\n            sobel_x.g = avg_x;\n            sobel_x.b = avg_x;\n            sobel_y.r = avg_y;\n            sobel_y.g = avg_y;\n            sobel_y.b = avg_y;\n\n            vec3 sobel = vec3(sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)));\n            sobel.g = sobel.g * edgeG;\n            // ==============\n\n\n            // ==============\n            // Get the average intensity over a 5x5 area\n            // ==============\n            vec4 n[25];\n\n            for (int i=-2; i<=2; i++) {\n                for (int j=-2; j<=2; j++) {\n                    n[(j+2)+(i+2)*5] = texture2D(texture, vUv + vec2(float(j)*w, float(i)*h) );\n                }\n            }\n\n            sobel_x = 2.0*n[4] + 3.0*n[9] + 4.0*n[14] + 3.0*n[19] + 2.0*n[24] +\n                       n[3] + 2.0*n[8] + 3.0*n[13] + 2.0*n[18] + n[23] -\n                       (2.0*n[0] + 3.0*n[5] + 4.0*n[10] + 3.0*n[15] + 2.0*n[20] +\n                       n[1] + 2.0*n[6] + 3.0*n[11] + 2.0*n[16] + n[21]);\n\n            sobel_y = 2.0*n[0] + n[1] + n[3] + n[4] +\n                       3.0*n[5] + 2.0*n[6] + 2.0*n[8] + 3.0*n[9] -\n                       (3.0*n[15] + 2.0*n[16] + 2.0*n[18] + 3.0*n[19] +\n                        2.0*n[20] + n[21] + n[23] + n[24]);\n\n            avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0 / 9.0;\n            avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0 / 9.0;\n\n            sobel_x.r = avg_x;\n            sobel_x.g = avg_x;\n            sobel_x.b = avg_x;\n            sobel_y.r = avg_y;\n            sobel_y.g = avg_y;\n            sobel_y.b = avg_y;\n\n            vec3 sobel5x5 = vec3(sqrt((sobel_x.rgb * sobel_x.rgb) + (sobel_y.rgb * sobel_y.rgb)));\n            float avgIntensity = sobel5x5.g;\n            // ==============\n\n\n            sobel.r = 0.0;\n            sobel.b = 0.0;\n            sobel.g = 0.25 * sobel.g;\n\n\n            float pWidth = 1.0 / width;\n            float pHeight = 1.0 / height;\n\n            // ==============\n            // Calculate highlighed columns values' intensities (looks better)\n            // ==============\n            float colIndex = floor(vUv.x*1000.0 / 10.0);\n            float rowIndex = floor(vUv.y*1000.0 / 10.0);\n\n            float colIntensity = 0.0;\n\n            for (int i=0; i<25; i++) {\n                if (lightCols[i] == colIndex) {\n                    for (int j=0; j<20; j++) {\n                        if (lightColsEnds[i] <= rowIndex) {\n                            if (lightColsEnds[i] >= rowIndex-1.0 && lightColsEnds[i] <= rowIndex+1.0 ) {\n                                colIntensity = 10.0;\n                            } else {\n                                colIntensity = 1.2 * min(max(lightColsEnds[i], 0.0) / rowIndex, 0.5);;\n                            }\n                        }\n                    }\n                }\n            }\n            // ==============\n\n            // ==============\n            // Render the characters\n            // ==============\n            float modX = floor(mod(vUv.x*1000.0, 10.0)*10.0)/10.0;\n            float modY = floor(mod( (vUv.y+colIndex*rand(vec2(colIndex, colIndex))) *1000.0, 10.0)*10.0)/10.0;\n\n            int charIX = int(modX / (10.0 / float(10)));\n            int charIY = int(modY / (10.0 / float(10)));\n\n            float x = floor(vUv.x*1000.0 / 10.0);\n            float y = floor(vUv.y*1000.0 / 10.0);\n\n            vec4 texRand = texture2D(texture, vec2(x, y));\n\n            float colour = rand(vec2(x * (texRand.r + texRand.g + texRand.b) / 3.0, y * (texRand.r + texRand.g + texRand.b) / 3.0));\n            int charSelected = int(floor(colour*2.0));\n\n            // Quite possibbly the worst hack I've ever written in my life\n            // GLSL can't take non-const values for array indeces, but it can\n            // take loop indeces, so I've got nested loops, to use THEIR indeces\n            for (int cs=0; cs<2; cs++) {\n                if (cs==charSelected) {\n                    for (int i=0; i<10; i++) {\n                        if (i==charIY) {\n                            for (int j=0; j<10; j++) {\n                                if (j==charIX) {\n                                    sobel.g += c[cs*100 + 100-10*i + j] * (avgIntensity + colIntensity + 0.05);\n                                    sobel.rb += 0.3 * c[cs*100 + 100-10*i + j] * (avgIntensity + colIntensity + 0.05);\n                                    break;\n                                }\n                            }\n                            break;\n                        }\n                    }\n                    break;\n                }\n            }\n            // ==============\n\n            vec4 newColour = vec4( sobel, 1.0 );\n        ";
         }
     }]);
 

@@ -120,7 +120,15 @@ window.addEventListener("load", () => {
                 surfaceB: {
                     type: "f",
                     value: 0.0
-                }
+                },
+                lightCols: {
+                    type: "t",
+                    value: [...new Array(25)].map(v => Math.floor(Math.random()*10*video.width/60))
+                },
+                lightColsEnds: {
+                    type: "t",
+                    value: [...new Array(60)].map(v => Math.floor(Math.random()*10*video.height/50))
+                },
             },
             vertexShader: vertexShaderSource.text,
             fragmentShader: Filters.compileShader("sobel3x3")
@@ -190,6 +198,10 @@ window.addEventListener("load", () => {
 
         if (video.currentTime) {
             texture.needsUpdate = true
+        }
+
+        if (Filters.matrix) {
+            boxMaterial.uniforms.lightColsEnds.value = boxMaterial.uniforms.lightColsEnds.value.map(v => v -= Math.random()/2)
         }
 
         effect.render(scene, camera)
@@ -277,6 +289,31 @@ window.addEventListener("load", () => {
 
         boxMaterial.fragmentShader = Filters.compileShader(Filters.shader)
         boxMaterial.needsUpdate = true
+    }
+
+    window.toggleMatrix = () => {
+        Filters.matrix = !Filters.matrix
+
+        clearInterval(Filters.matrixInterval)
+
+        toggleBackground(false)
+        setEdgeColour({r: 0, g: 255, b: 0})
+        setIntensity(1)
+        setRadius(1)
+
+        boxMaterial.fragmentShader = Filters.compileShader("matrix")
+        boxMaterial.needsUpdate = true
+
+        Filters.matrixInterval = setInterval(() => {
+            // let i = Math.floor(Math.random()*10)
+            for (let i=0; i<boxMaterial.uniforms.lightColsEnds.value.length; i++) {
+                if (boxMaterial.uniforms.lightColsEnds.value[i] < 0) {
+                    boxMaterial.uniforms.lightCols.value[i] = Math.floor(Math.random()*10*video.width/50)
+                    boxMaterial.uniforms.lightColsEnds.value[i] = video.height/5
+                }
+            }
+
+        }, 100)
     }
 
 })

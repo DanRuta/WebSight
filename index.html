@@ -41,8 +41,9 @@
                 margin: 0 auto;
                 padding: 10px;
 
-                background: rgba(255,255,255, 0.3);
+                background: rgba(255,255,255, 0.4);
                 border-radius: 3px;
+                font-size: 120%;
 
                 transform: translateY(-95%);
                 transition: transform 500ms ease;
@@ -51,8 +52,8 @@
             #controls.open { transform: translateY(0); }
 
             #controls .filters {
-                overflow-x: scroll;
                 display: flex;
+                justify-content: center;
                 flex-flow: row nowrap;
             }
 
@@ -114,6 +115,10 @@
             #controls button {
                 filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.5));
             }
+            label[for="radius-slider"] {
+                display: flex;
+                align-items: center;
+            }
 
             #enterVRButton.small {
                 transform: scale(0.7);
@@ -167,6 +172,11 @@
                 vertical-align: middle;
             }
 
+            input[type="checkbox"] {
+                height: 20px;
+                width: 20px;
+            }
+
         </style>
     </head>
     <body>
@@ -185,7 +195,7 @@
                         <label for="reducedColoursCheckbox"><span>Reduced Colours</span><input id="reducedColoursCheckbox" type="checkbox"></label>
                         <label for="surfaceCheckbox"><span>Surface Colours</span><input id="surfaceCheckbox" type="checkbox" checked></label>
                     </div>
-                    
+
                     <div class="colour-pickers">
                         <label for="edge-picker"><input id="edge-picker" class="jscolor {onFineChange: 'updateColour(\'edge\', this)', valueElement: 'edge-picker'}" value="FFFFFF"><span>Edge Colour</span></label>
                         <label for="surface=picker"><input id="surface-picker" class="jscolor {onFineChange: 'updateColour(\'surface\', this)', valueElement: 'surface-picker'}" value="000000"><span>Background Colour</span></label>
