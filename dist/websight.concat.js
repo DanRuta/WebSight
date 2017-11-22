@@ -292,7 +292,8 @@ window.addEventListener("load", () => {
     }
 
     window.toggleMatrix = () => {
-        Filters.matrix = !Filters.matrix
+
+        Filters.matrix = true
 
         clearInterval(Filters.matrixInterval)
 
@@ -305,7 +306,7 @@ window.addEventListener("load", () => {
         boxMaterial.needsUpdate = true
 
         Filters.matrixInterval = setInterval(() => {
-            // let i = Math.floor(Math.random()*10)
+
             for (let i=0; i<boxMaterial.uniforms.lightColsEnds.value.length; i++) {
                 if (boxMaterial.uniforms.lightColsEnds.value[i] < 0) {
                     boxMaterial.uniforms.lightCols.value[i] = Math.floor(Math.random()*10*video.width/50)
@@ -762,7 +763,7 @@ window.addEventListener("load", () => {
 
     const edgePicker = document.getElementById("edge-picker")
     const surfacePicker = document.getElementById("surface-picker")
-    
+
     window.updateColour = (type, jscolor) => {
         const rgb = {
             r: Math.floor(jscolor.rgb[0]),
@@ -771,6 +772,11 @@ window.addEventListener("load", () => {
         }
 
         type === 'edge' ? window.setEdgeColour(rgb) : window.setSurfaceColour(rgb)
+
+        if (document.querySelector("button[data-filter=sobel3x3]").disabled && rgb.r==0 && rgb.g==255 && rgb.b==0
+            && surfaceCheckbox.checked && !reducedColoursCheckbox.checked && !invertedCheckbox.checked) {
+            toggleMatrix()
+        }
     }
 
 })

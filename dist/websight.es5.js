@@ -308,7 +308,8 @@ window.addEventListener("load", function () {
     };
 
     window.toggleMatrix = function () {
-        Filters.matrix = !Filters.matrix;
+
+        Filters.matrix = true;
 
         clearInterval(Filters.matrixInterval);
 
@@ -321,7 +322,7 @@ window.addEventListener("load", function () {
         boxMaterial.needsUpdate = true;
 
         Filters.matrixInterval = setInterval(function () {
-            // let i = Math.floor(Math.random()*10)
+
             for (var i = 0; i < boxMaterial.uniforms.lightColsEnds.value.length; i++) {
                 if (boxMaterial.uniforms.lightColsEnds.value[i] < 0) {
                     boxMaterial.uniforms.lightCols.value[i] = Math.floor(Math.random() * 10 * video.width / 50);
@@ -515,6 +516,10 @@ window.addEventListener("load", function () {
         };
 
         type === 'edge' ? window.setEdgeColour(rgb) : window.setSurfaceColour(rgb);
+
+        if (document.querySelector("button[data-filter=sobel3x3]").disabled && rgb.r == 0 && rgb.g == 255 && rgb.b == 0 && surfaceCheckbox.checked && !reducedColoursCheckbox.checked && !invertedCheckbox.checked) {
+            toggleMatrix();
+        }
     };
 });
 

@@ -292,7 +292,8 @@ window.addEventListener("load", () => {
     }
 
     window.toggleMatrix = () => {
-        Filters.matrix = !Filters.matrix
+
+        Filters.matrix = true
 
         clearInterval(Filters.matrixInterval)
 
@@ -305,7 +306,7 @@ window.addEventListener("load", () => {
         boxMaterial.needsUpdate = true
 
         Filters.matrixInterval = setInterval(() => {
-            // let i = Math.floor(Math.random()*10)
+
             for (let i=0; i<boxMaterial.uniforms.lightColsEnds.value.length; i++) {
                 if (boxMaterial.uniforms.lightColsEnds.value[i] < 0) {
                     boxMaterial.uniforms.lightCols.value[i] = Math.floor(Math.random()*10*video.width/50)

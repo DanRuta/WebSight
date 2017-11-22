@@ -73,7 +73,7 @@ window.addEventListener("load", () => {
 
     const edgePicker = document.getElementById("edge-picker")
     const surfacePicker = document.getElementById("surface-picker")
-    
+
     window.updateColour = (type, jscolor) => {
         const rgb = {
             r: Math.floor(jscolor.rgb[0]),
@@ -82,6 +82,11 @@ window.addEventListener("load", () => {
         }
 
         type === 'edge' ? window.setEdgeColour(rgb) : window.setSurfaceColour(rgb)
+
+        if (document.querySelector("button[data-filter=sobel3x3]").disabled && rgb.r==0 && rgb.g==255 && rgb.b==0
+            && surfaceCheckbox.checked && !reducedColoursCheckbox.checked && !invertedCheckbox.checked) {
+            toggleMatrix()
+        }
     }
 
 })
