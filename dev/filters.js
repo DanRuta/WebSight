@@ -224,12 +224,7 @@ class Filters {
 
 
     static get matrixBody () {
-        // 10x10 pixel.g values for '0' and '1'
-        const charData = [0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,1,1,0,0,1,1,0,0,0,0,1,1,0,0,1,1,0,0,0,0,1,1,0,0,1,1,0,0,0,0,1,1,0,0,1,1,0,0,0,0,1,1,0,0,1,1,0,0,0,0,1,1,0,0,1,1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0]
-
         return `
-            float c[${charData.length}];
-            ${charData.map((d,i) => `c[${i}]=${d}.0;`).join("\n")}
 
             // ==============
             // Edge detection
@@ -290,28 +285,26 @@ class Filters {
             vec4 texRand = texture2D(texture, vec2(x, y));
             int charSelected = int(rand(vec2(x * texRand.r, y * texRand.r)) *2.0);
 
-            // Quite possibbly the worst hack I've ever written in my life
-            // GLSL can't take non-const values for array indeces, but it can
-            // take loop indeces, so I've got nested loops, to use THEIR indeces
-            for (int cs=0; cs<2; cs++) {
-                if (cs==charSelected) {
-                    for (int i=0; i<10; i++) {
-                        if (i==modY) {
-                            for (int j=0; j<10; j++) {
-                                if (j==modX) {
-                                    float digit = c[cs*100 + 100-10*i + j];
-                                    sobel.g += digit * (sobel.g + colIntensity);
-                                    sobel.r = 0.3 * digit * (sobel.g + colIntensity);
-                                    sobel.b = sobel.r;
-                                    break;
-                                }
-                            }
-                            break;
-                        }
-                    }
-                    break;
+            float val = 0.0;
+
+            if (charSelected==0) {
+                // Draw '0'
+                if ((modY==1 || modY==8) && (modX>=3 && modX<=6) ||
+                    (modY>=2 && modY<=7) && (modX==2 || modX==3 || modX==6 || modX==7)) {
+                    val = 1.0;
+                }
+            } else {
+                // Draw '1'
+                if ((modY==7 || modY==6) && modX==4 ||
+                    (modX==5 || modX==6) && modY>0 && modY<9 ||
+                    (modY==2 || modY==1) && modX>=4 && modX<=7) {
+                    val = 1.0;
                 }
             }
+
+            sobel.g += val * (sobel.g + colIntensity);
+            sobel.b = sobel.r;
+
             // ==============
 
             vec4 newColour = vec4( sobel, 1.0 );
