@@ -624,6 +624,7 @@ class Filters {
             }
 
             sobel.g += val * (sobel.g + colIntensity);
+            sobel.r = 0.3 * val * (sobel.g + colIntensity);
             sobel.b = sobel.r;
 
             // ==============
