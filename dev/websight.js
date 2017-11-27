@@ -123,11 +123,11 @@ window.addEventListener("load", () => {
                 },
                 lightCols: {
                     type: "t",
-                    value: [...new Array(25)].map(v => Math.floor(Math.random()*10*video.width/60))
+                    value: [...new Array(10)].map(v => Math.floor(Math.random()*10*video.width/60))
                 },
                 lightColsEnds: {
                     type: "t",
-                    value: [...new Array(60)].map(v => Math.floor(Math.random()*10*video.height/50))
+                    value: [...new Array(10)].map(v => Math.floor(Math.random()*10*video.height/50))
                 },
             },
             vertexShader: vertexShaderSource.text,

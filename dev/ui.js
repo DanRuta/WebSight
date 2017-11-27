@@ -89,4 +89,8 @@ window.addEventListener("load", () => {
         }
     }
 
+    if (location.hash=="#matrix") {
+        toggleMatrix()
+    }
+
 })
