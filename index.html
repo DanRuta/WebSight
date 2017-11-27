@@ -40,7 +40,7 @@
                 margin: 0 auto;
                 padding: 10px;
 
-                background: rgba(255,255,255, 0.4);
+                background: rgba(255,255,255, 0.6);
                 border-radius: 3px;
                 font-size: 120%;
 
@@ -74,10 +74,6 @@
             }
 
             #controls .toggle {
-                /* Fix this
-                background-image: url('/images/icons/down-arrow.svg');
-                background-size: contain;
-                background-position: center center; */
                 background-color: transparent;
                 width: 50px;
                 height: 50px;
@@ -112,7 +108,7 @@
             svg,
             #controls label,
             #controls button {
-                filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.5));
+                filter: drop-shadow(0 0 2px rgba(0, 0, 0, 1));
             }
             label[for="radius-slider"] {
                 display: flex;
@@ -169,6 +165,9 @@
             #controls .colours input,
             #controls .colours span {
                 vertical-align: middle;
+            }
+            #controls .colours span, input {
+                font-size: 110%;
             }
 
             input[type="checkbox"] {
