@@ -7,13 +7,13 @@ Live PWA demo: https://websight.danruta.co.uk/
 
 ---
 
-In 2011, the world health organization determined that there are 246 million people who have low vision. Navigation and pathfinding are issues they have to deal with every day. Solutions include sonar devices, canes, and carers.
+Today, about 4% of the world’s population are visually impaired. Navigation and pathfinding are issues they have to deal with every day and are problems for which many imperfect, unintuitive solutions exist.
 
-On the web, people with low vision can turn on high contrast mode, to ease the strain and increase the detail perceived.
+For many years, operating systems, applications and websites have provided assistive functionality through overlay filters such as high contrast mode, and inverted colours.
 
 What if we took that concept and applied it to their lives outside of web surfing?
 
-WebSight is a small experiment that sets out to explore and implement a system to help give visually impaired people a new perspective on life.
+WebSight is a small experiment that uses highly configurable WebGL shaders in phone based VR video feeds, to help give visually impaired people a new perspective on life.
 
 ---
 
