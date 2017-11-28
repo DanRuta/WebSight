@@ -158,34 +158,44 @@ window.addEventListener("load", function () {
 
     var getVideoFeed = function getVideoFeed() {
         try {
-            var mediaDevicesSupport = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
 
-            if (mediaDevicesSupport) {
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function (stream) {
+            if ("mozGetUserMedia" in navigator) {
+                navigator.mozGetUserMedia({ video: { facingMode: "environment" } }, function (stream) {
                     video.src = window.URL.createObjectURL(stream);
-                }).catch(function (err) {
+                }, function (err) {
                     console.log(err);
-                    getVideoFeedAttempts++;
-
-                    // Rarely, getting the camera fails. Re-attempting usually works, on refresh.
-                    if (getVideoFeedAttempts < 3) {
-                        getVideoFeed();
-                    } else {
-                        alert("There was an error accessing the camera. Please try again and ensure you are using https");
-                    }
+                    alert("There was an error accessing the camera. Please try again and ensure you are using https");
                 });
             } else {
-                var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+                var mediaDevicesSupport = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
 
-                if (getUserMedia) {
-                    getUserMedia({ video: { facingMode: "environment" } }, function (stream) {
+                if (mediaDevicesSupport) {
+                    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function (stream) {
                         video.src = window.URL.createObjectURL(stream);
-                    }, function (err) {
+                    }).catch(function (err) {
                         console.log(err);
-                        alert("There was an error accessing the camera. Please try again and ensure you are using https.");
+                        getVideoFeedAttempts++;
+
+                        // Rarely, getting the camera fails. Re-attempting usually works, on refresh.
+                        if (getVideoFeedAttempts < 3) {
+                            getVideoFeed();
+                        } else {
+                            alert("There was an error accessing the camera. Please try again and ensure you are using https");
+                        }
                     });
                 } else {
-                    alert("Camera not available");
+                    var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+
+                    if (getUserMedia) {
+                        getUserMedia({ video: { facingMode: "environment" } }, function (stream) {
+                            video.src = window.URL.createObjectURL(stream);
+                        }, function (err) {
+                            console.log(err);
+                            alert("There was an error accessing the camera. Please try again and ensure you are using https.");
+                        });
+                    } else {
+                        alert("Camera not available");
+                    }
                 }
             }
         } catch (e) {

@@ -144,47 +144,62 @@ window.addEventListener("load", () => {
 
     const getVideoFeed = () => {
         try {
-            const mediaDevicesSupport = navigator.mediaDevices && navigator.mediaDevices.getUserMedia
 
-            if (mediaDevicesSupport) {
-                navigator.mediaDevices
-                    .getUserMedia({ video: { facingMode: "environment" } })
-                    .then(stream => {
+            if ("mozGetUserMedia" in navigator) {
+                navigator.mozGetUserMedia(
+                    {video: { facingMode: "environment" }},
+                    stream => {
                         video.src = window.URL.createObjectURL(stream)
-                    })
-                    .catch(err => {
+                    },
+                    err => {
                         console.log(err)
-                        getVideoFeedAttempts++
-
-                        // Rarely, getting the camera fails. Re-attempting usually works, on refresh.
-                        if (getVideoFeedAttempts<3) {
-                            getVideoFeed()
-                        } else {
-                            alert("There was an error accessing the camera. Please try again and ensure you are using https")
-                        }
-                    })
+                        alert("There was an error accessing the camera. Please try again and ensure you are using https")
+                    }
+                )
             } else {
-                const getUserMedia =
-                    navigator.getUserMedia ||
-                    navigator.webkitGetUserMedia ||
-                    navigator.mozGetUserMedia ||
-                    navigator.msGetUserMedia
+                const mediaDevicesSupport = navigator.mediaDevices && navigator.mediaDevices.getUserMedia
 
-                if (getUserMedia) {
-                    getUserMedia(
-                        { video: { facingMode: "environment" } },
-                        stream => {
+                if (mediaDevicesSupport) {
+                    navigator.mediaDevices
+                        .getUserMedia({ video: { facingMode: "environment" } })
+                        .then(stream => {
                             video.src = window.URL.createObjectURL(stream)
-                        },
-                        err => {
+                        })
+                        .catch(err => {
                             console.log(err)
-                            alert("There was an error accessing the camera. Please try again and ensure you are using https.")
-                        }
-                    )
+                            getVideoFeedAttempts++
+
+                            // Rarely, getting the camera fails. Re-attempting usually works, on refresh.
+                            if (getVideoFeedAttempts<3) {
+                                getVideoFeed()
+                            } else {
+                                alert("There was an error accessing the camera. Please try again and ensure you are using https")
+                            }
+                        })
                 } else {
-                    alert("Camera not available")
+                    const getUserMedia =
+                        navigator.getUserMedia ||
+                        navigator.webkitGetUserMedia ||
+                        navigator.mozGetUserMedia ||
+                        navigator.msGetUserMedia
+
+                    if (getUserMedia) {
+                        getUserMedia(
+                            { video: { facingMode: "environment" } },
+                            stream => {
+                                video.src = window.URL.createObjectURL(stream)
+                            },
+                            err => {
+                                console.log(err)
+                                alert("There was an error accessing the camera. Please try again and ensure you are using https.")
+                            }
+                        )
+                    } else {
+                        alert("Camera not available")
+                    }
                 }
             }
+
         } catch (e) {
             alert("Error getting camera feed. Please ensure you are using https.")
         }
