@@ -275,6 +275,7 @@ window.addEventListener("load", function () {
 
     window.setShader = function (shader) {
         Filters.shader = shader;
+        console.log("setShader");
         boxMaterial.fragmentShader = Filters.compileShader(shader);
         boxMaterial.needsUpdate = true;
     };
@@ -371,14 +372,29 @@ window.addEventListener("load", function () {
         }, 100);
     };
 
-    window.toggleFire = function () {
+    window.toggleFire = function (off) {
+
+        if (off) {
+            Filters.fire = false;
+            audioElem.pause();
+            boxMaterial.uniforms.fireTimer.value = 10000000;
+            clearInterval(Filters.fireInterval);
+            window.setShader(Filters.shader);
+            return;
+        }
+
+        if (Filters.fire) {
+            return;
+        }
 
         Filters.fire = true;
         Filters.fireTimer = 0;
         clearInterval(Filters.matrixInterval);
         clearInterval(Filters.fireInterval);
 
-        toggleBackground(false);
+        boxMaterial.uniforms.surfaceR.value = surfaceCache.r;
+        boxMaterial.uniforms.surfaceG.value = surfaceCache.g;
+        boxMaterial.uniforms.surfaceB.value = surfaceCache.b;
         setEdgeColour({ r: 255, g: 177, b: 0 });
         setIntensity(1);
         setRadius(1);
@@ -390,6 +406,12 @@ window.addEventListener("load", function () {
             Filters.fireTimer += 8;
             boxMaterial.uniforms.fireTimer.value = Filters.fireTimer % fire.height / 2 / fire.height;
         }, 2);
+
+        // Audio
+        if (Filters.fire) {
+            audioElem.currentTime = 47;
+            audioElem.play();
+        }
     };
 });
 
@@ -582,7 +604,14 @@ window.addEventListener("load", function () {
         }
 
         if (document.querySelector("button[data-filter=sobel3x3]").disabled && rgb.r == 255 && rgb.g == 0 && rgb.b == 0 && surfaceCheckbox.checked && !reducedColoursCheckbox.checked && !invertedCheckbox.checked) {
-            toggleFire();
+
+            if (!Filters.fire) {
+                toggleFire();
+            }
+        } else {
+            if (Filters.fire) {
+                window.toggleFire(true);
+            }
         }
     };
 
@@ -593,6 +622,10 @@ window.addEventListener("load", function () {
     if (location.hash == "#fire") {
         toggleFire();
     }
+
+    var audioSrc = document.createElement("source");
+    audioSrc.src = "fire.mp3";
+    audioElem.appendChild(audioSrc);
 });
 
 //# sourceMappingURL=websight.concat.js.map

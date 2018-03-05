@@ -279,6 +279,7 @@ window.addEventListener("load", () => {
 
     window.setShader = shader => {
         Filters.shader = shader
+        console.log("setShader")
         boxMaterial.fragmentShader = Filters.compileShader(shader)
         boxMaterial.needsUpdate = true
     }
@@ -363,14 +364,30 @@ window.addEventListener("load", () => {
     }
 
 
-    window.toggleFire = () => {
+    window.toggleFire = (off) => {
+
+        if (off) {
+            Filters.fire = false
+            audioElem.pause()
+            boxMaterial.uniforms.fireTimer.value = 10000000
+            clearInterval(Filters.fireInterval)
+            window.setShader(Filters.shader)
+            return
+        }
+
+        if (Filters.fire) {
+            return
+        }
+
 
         Filters.fire = true
         Filters.fireTimer = 0
         clearInterval(Filters.matrixInterval)
         clearInterval(Filters.fireInterval)
 
-        toggleBackground(false)
+        boxMaterial.uniforms.surfaceR.value = surfaceCache.r
+        boxMaterial.uniforms.surfaceG.value = surfaceCache.g
+        boxMaterial.uniforms.surfaceB.value = surfaceCache.b
         setEdgeColour({r: 255, g: 177, b: 0})
         setIntensity(1)
         setRadius(1)
@@ -383,6 +400,10 @@ window.addEventListener("load", () => {
             boxMaterial.uniforms.fireTimer.value = (Filters.fireTimer % fire.height/2) / fire.height
         }, 2)
 
+        // Audio
+        if (Filters.fire) {
+            audioElem.currentTime = 47
+            audioElem.play()
+        }
     }
-
 })

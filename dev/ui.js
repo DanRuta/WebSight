@@ -90,7 +90,14 @@ window.addEventListener("load", () => {
 
         if (document.querySelector("button[data-filter=sobel3x3]").disabled && rgb.r==255 && rgb.g==0 && rgb.b==0
             && surfaceCheckbox.checked && !reducedColoursCheckbox.checked && !invertedCheckbox.checked) {
-            toggleFire()
+
+            if (!Filters.fire) {
+                toggleFire()
+            }
+        } else {
+            if (Filters.fire) {
+                window.toggleFire(true)
+            }
         }
     }
 
@@ -102,4 +109,7 @@ window.addEventListener("load", () => {
         toggleFire()
     }
 
+    const audioSrc = document.createElement("source")
+    audioSrc.src = "fire.mp3"
+    audioElem.appendChild(audioSrc)
 })
