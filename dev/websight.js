@@ -58,6 +58,8 @@ window.addEventListener("load", () => {
 
     // Box object
     let texture
+    let fireTexture
+    let noiseTexture
     let boxMaterial
     let box
 
@@ -75,11 +77,30 @@ window.addEventListener("load", () => {
         texture = new THREE.Texture(video)
         texture.minFilter = THREE.NearestFilter
 
+        fireTexture = new THREE.Texture(fire)
+        fireTexture.minFilter = THREE.NearestFilter
+        fireTexture.wrapS = THREE.RepeatWrapping
+        fireTexture.wrapT = THREE.RepeatWrapping
+
+        noiseTexture = new THREE.Texture(noise)
+        noiseTexture.minFilter = THREE.NearestFilter
+        noiseTexture.wrapS = THREE.RepeatWrapping
+        noiseTexture.wrapT = THREE.RepeatWrapping
+
+
         boxMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 texture: {
                     type: "t",
                     value: texture
+                },
+                fireTex: {
+                    type: "t",
+                    value: fireTexture
+                },
+                noiseTex: {
+                    type: "t",
+                    value: noiseTexture
                 },
                 width: {
                     type: "f",
@@ -129,6 +150,10 @@ window.addEventListener("load", () => {
                     type: "t",
                     value: [...new Array(10)].map(v => Math.floor(Math.random()*10*video.height/50))
                 },
+                fireTimer: {
+                    type: "f",
+                    value: 0.0
+                }
             },
             vertexShader: vertexShaderSource.text,
             fragmentShader: Filters.compileShader("sobel3x3")
@@ -205,8 +230,6 @@ window.addEventListener("load", () => {
         }
     }
 
-    makeBoxObject()
-
     // Render loop
     const render = () => {
         requestAnimationFrame(render)
@@ -215,12 +238,19 @@ window.addEventListener("load", () => {
             texture.needsUpdate = true
         }
 
+        if (Filters.fire) {
+            fireTexture.needsUpdate = true
+            noiseTexture.needsUpdate = true
+        }
+
         if (Filters.matrix) {
             boxMaterial.uniforms.lightColsEnds.value = boxMaterial.uniforms.lightColsEnds.value.map(v => v -= Math.random()/2)
         }
 
         effect.render(scene, camera)
     }
+
+    makeBoxObject()
     render()
 
     // Request fullscreen when tapped
@@ -330,6 +360,29 @@ window.addEventListener("load", () => {
             }
 
         }, 100)
+    }
+
+
+    window.toggleFire = () => {
+
+        Filters.fire = true
+        Filters.fireTimer = 0
+        clearInterval(Filters.matrixInterval)
+        clearInterval(Filters.fireInterval)
+
+        toggleBackground(false)
+        setEdgeColour({r: 255, g: 177, b: 0})
+        setIntensity(1)
+        setRadius(1)
+
+        boxMaterial.fragmentShader = Filters.compileShader("fire")
+        boxMaterial.needsUpdate = true
+
+        Filters.fireInterval = setInterval(() => {
+            Filters.fireTimer += 8
+            boxMaterial.uniforms.fireTimer.value = (Filters.fireTimer % fire.height/2) / fire.height
+        }, 2)
+
     }
 
 })

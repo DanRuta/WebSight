@@ -9,6 +9,8 @@ class Filters {
     static compileShader (name) {
         return `
             uniform sampler2D texture;
+            uniform sampler2D fireTex;
+            uniform sampler2D noiseTex;
             uniform float width;
             uniform float height;
             uniform float radius;
@@ -24,6 +26,7 @@ class Filters {
             uniform float surfaceG;
             uniform float surfaceB;
 
+            uniform float fireTimer;
             uniform float lightCols[5];
             uniform float lightColsEnds[5];
 
@@ -309,6 +312,62 @@ class Filters {
             // ==============
 
             vec4 newColour = vec4( sobel, 1.0 );
+        `
+    }
+
+    static get fireBody () {
+        return `
+
+            // Get the pixel below by this amount
+            const int amount = 15;
+            vec4 firePixel = vec4(0.0, 0.0, 0.0, 1.0);
+
+            vec4 distort = texture2D(fireTex, vec2(vUv.x*4.0, (vUv.y-fireTimer/2.0)*4.0));
+            vec4 noise = texture2D(noiseTex, vec2(vUv.x*4.0, (vUv.y-fireTimer)*4.0));
+
+            // Go down a few pixels and find if there is a line within ^^ amount of pixels
+            for (int r=0; r<amount; r++) {
+                vec4 n[9];
+                float fr = float(r) * h;
+                n[0] = texture2D(texture, vUv + vec2(0.0, 0.0 - fr) );
+                n[1] = texture2D(texture, vUv + vec2(w, 0.0 - fr) );
+                n[2] = texture2D(texture, vUv + vec2(2.0*w, 0.0 - fr) );
+                n[3] = texture2D(texture, vUv + vec2(0.0*w, h - fr) );
+                n[4] = texture2D(texture, vUv + vec2(w, h - fr) );
+                n[5] = texture2D(texture, vUv + vec2(2.0*w, h - fr) );
+                n[6] = texture2D(texture, vUv + vec2(0.0, 2.0*h - fr) );
+                n[7] = texture2D(texture, vUv + vec2(w, 2.0*h - fr) );
+                n[8] = texture2D(texture, vUv + vec2(2.0*w, 2.0*h - fr) );
+
+                vec4 sobel_x = n[2] + (2.0*n[5]) + n[8] - (n[0] + (2.0*n[3]) + n[6]);
+                vec4 sobel_y = n[0] + (2.0*n[1]) + n[2] - (n[6] + (2.0*n[7]) + n[8]);
+
+                float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0;
+                float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0;
+                float sobel = sqrt(avg_x*avg_x) + sqrt(avg_y*avg_y);
+
+
+                if (sobel > 0.5) {
+                    firePixel.r = (1.0 - float(r) / float(amount)) * distort.r * noise.b;
+                    firePixel.g = firePixel.r / 2.0;
+
+                    if (r<amount/2) {
+                        firePixel.g += (1.0 - float(r) / float(amount/2)) * distort.r * noise.b / 8.0;
+                        firePixel.r += (1.0 - float(r) / float(amount/2)) * distort.r * noise.b / 8.0;
+                    }
+
+                    if (r<2) {
+                        firePixel.r = firePixel.r * 1.1;
+                        firePixel.g = firePixel.g * 1.3;
+                    }
+
+                    break;
+                }
+            }
+
+            vec4 newColour = pixel / 3.0;
+            newColour.r += firePixel.r;
+            newColour.g += firePixel.g;
         `
     }
 }

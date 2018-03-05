@@ -87,10 +87,19 @@ window.addEventListener("load", () => {
             && surfaceCheckbox.checked && !reducedColoursCheckbox.checked && !invertedCheckbox.checked) {
             toggleMatrix()
         }
+
+        if (document.querySelector("button[data-filter=sobel3x3]").disabled && rgb.r==255 && rgb.g==0 && rgb.b==0
+            && surfaceCheckbox.checked && !reducedColoursCheckbox.checked && !invertedCheckbox.checked) {
+            toggleFire()
+        }
     }
 
     if (location.hash=="#matrix") {
         toggleMatrix()
+    }
+
+    if (location.hash=="#fire") {
+        toggleFire()
     }
 
 })

@@ -68,6 +68,8 @@ window.addEventListener("load", function () {
 
     // Box object
     var texture = void 0;
+    var fireTexture = void 0;
+    var noiseTexture = void 0;
     var boxMaterial = void 0;
     var box = void 0;
 
@@ -85,11 +87,29 @@ window.addEventListener("load", function () {
         texture = new THREE.Texture(video);
         texture.minFilter = THREE.NearestFilter;
 
+        fireTexture = new THREE.Texture(fire);
+        fireTexture.minFilter = THREE.NearestFilter;
+        fireTexture.wrapS = THREE.RepeatWrapping;
+        fireTexture.wrapT = THREE.RepeatWrapping;
+
+        noiseTexture = new THREE.Texture(noise);
+        noiseTexture.minFilter = THREE.NearestFilter;
+        noiseTexture.wrapS = THREE.RepeatWrapping;
+        noiseTexture.wrapT = THREE.RepeatWrapping;
+
         boxMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 texture: {
                     type: "t",
                     value: texture
+                },
+                fireTex: {
+                    type: "t",
+                    value: fireTexture
+                },
+                noiseTex: {
+                    type: "t",
+                    value: noiseTexture
                 },
                 width: {
                     type: "f",
@@ -142,6 +162,10 @@ window.addEventListener("load", function () {
                     value: [].concat(_toConsumableArray(new Array(10))).map(function (v) {
                         return Math.floor(Math.random() * 10 * video.height / 50);
                     })
+                },
+                fireTimer: {
+                    type: "f",
+                    value: 0.0
                 }
             },
             vertexShader: vertexShaderSource.text,
@@ -203,14 +227,17 @@ window.addEventListener("load", function () {
         }
     };
 
-    makeBoxObject();
-
     // Render loop
     var render = function render() {
         requestAnimationFrame(render);
 
         if (video.currentTime) {
             texture.needsUpdate = true;
+        }
+
+        if (Filters.fire) {
+            fireTexture.needsUpdate = true;
+            noiseTexture.needsUpdate = true;
         }
 
         if (Filters.matrix) {
@@ -221,6 +248,8 @@ window.addEventListener("load", function () {
 
         effect.render(scene, camera);
     };
+
+    makeBoxObject();
     render();
 
     // Request fullscreen when tapped
@@ -341,6 +370,27 @@ window.addEventListener("load", function () {
             }
         }, 100);
     };
+
+    window.toggleFire = function () {
+
+        Filters.fire = true;
+        Filters.fireTimer = 0;
+        clearInterval(Filters.matrixInterval);
+        clearInterval(Filters.fireInterval);
+
+        toggleBackground(false);
+        setEdgeColour({ r: 255, g: 177, b: 0 });
+        setIntensity(1);
+        setRadius(1);
+
+        boxMaterial.fragmentShader = Filters.compileShader("fire");
+        boxMaterial.needsUpdate = true;
+
+        Filters.fireInterval = setInterval(function () {
+            Filters.fireTimer += 8;
+            boxMaterial.uniforms.fireTimer.value = Filters.fireTimer % fire.height / 2 / fire.height;
+        }, 2);
+    };
 });
 
 "use strict";
@@ -353,7 +403,7 @@ var Filters = function () {
     _createClass(Filters, null, [{
         key: "compileShader",
         value: function compileShader(name) {
-            return "\n            uniform sampler2D texture;\n            uniform float width;\n            uniform float height;\n            uniform float radius;\n            uniform float intensity;\n            uniform vec2 resolution;\n            varying vec2 vUv;\n\n            uniform float edgeR;\n            uniform float edgeG;\n            uniform float edgeB;\n\n            uniform float surfaceR;\n            uniform float surfaceG;\n            uniform float surfaceB;\n\n            uniform float lightCols[5];\n            uniform float lightColsEnds[5];\n\n            float rand(vec2 co){\n                return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);\n            }\n\n            void main() {\n\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n\n                vec4 pixel = texture2D(texture, vUv);\n\n                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < radius) {\n\n                    " + this[name + "Body"] + "\n\n                    gl_FragColor = newColour*(1.0-intensity) + pixel*intensity;\n\n                    " + (this.hasBackground ? this.addBackground : "") + "\n\n                    " + (this.hasReducedColours ? this.reducedColoursBody : "") + "\n\n                    " + (this.isInverted ? this.invertedBody : "") + "\n\n                } else {\n                    gl_FragColor = vec4(pixel.rgb, 1.0);\n                }\n\n            }\n        ";
+            return "\n            uniform sampler2D texture;\n            uniform sampler2D fireTex;\n            uniform sampler2D noiseTex;\n            uniform float width;\n            uniform float height;\n            uniform float radius;\n            uniform float intensity;\n            uniform vec2 resolution;\n            varying vec2 vUv;\n\n            uniform float edgeR;\n            uniform float edgeG;\n            uniform float edgeB;\n\n            uniform float surfaceR;\n            uniform float surfaceG;\n            uniform float surfaceB;\n\n            uniform float fireTimer;\n            uniform float lightCols[5];\n            uniform float lightColsEnds[5];\n\n            float rand(vec2 co){\n                return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);\n            }\n\n            void main() {\n\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n\n                vec4 pixel = texture2D(texture, vUv);\n\n                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < radius) {\n\n                    " + this[name + "Body"] + "\n\n                    gl_FragColor = newColour*(1.0-intensity) + pixel*intensity;\n\n                    " + (this.hasBackground ? this.addBackground : "") + "\n\n                    " + (this.hasReducedColours ? this.reducedColoursBody : "") + "\n\n                    " + (this.isInverted ? this.invertedBody : "") + "\n\n                } else {\n                    gl_FragColor = vec4(pixel.rgb, 1.0);\n                }\n\n            }\n        ";
         }
     }, {
         key: "availableFilters",
@@ -415,6 +465,11 @@ var Filters = function () {
         key: "matrixBody",
         get: function get() {
             return "\n\n            // ==============\n            // Edge detection\n            // ==============\n            vec4 n[9];\n            n[0] = texture2D(texture, vUv + vec2(0.0, 0.0) );\n            n[1] = texture2D(texture, vUv + vec2(w, 0.0) );\n            n[2] = texture2D(texture, vUv + vec2(2.0*w, 0.0) );\n            n[3] = texture2D(texture, vUv + vec2(0.0*w, h) );\n            n[4] = texture2D(texture, vUv + vec2(w, h) );\n            n[5] = texture2D(texture, vUv + vec2(2.0*w, h) );\n            n[6] = texture2D(texture, vUv + vec2(0.0, 2.0*h) );\n            n[7] = texture2D(texture, vUv + vec2(w, 2.0*h) );\n            n[8] = texture2D(texture, vUv + vec2(2.0*w, 2.0*h) );\n\n            vec4 sobel_x = n[2] + (2.0*n[5]) + n[8] - (n[0] + (2.0*n[3]) + n[6]);\n            vec4 sobel_y = n[0] + (2.0*n[1]) + n[2] - (n[6] + (2.0*n[7]) + n[8]);\n\n            float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 12.0;\n            float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 12.0;\n\n            vec3 sobel = vec3(0, sqrt((avg_x * avg_x) + (avg_y * avg_y)) , 0);\n            // ==============\n\n\n            // ==============\n            // Calculate highlighed columns values' intensities (looks better)\n            // ==============\n            float colIndex = floor(vUv.x*1000.0 / 10.0);\n            float rowIndex = floor(vUv.y*1000.0 / 10.0);\n\n            float colIntensity = 0.05;\n\n            for (int i=0; i<25; i++) {\n                if (lightCols[i] == colIndex) {\n                    for (int j=0; j<20; j++) {\n                        if (lightColsEnds[i] <= rowIndex) {\n                            if (lightColsEnds[i] >= rowIndex-1.0 && lightColsEnds[i] <= rowIndex+1.0 ) {\n                                colIntensity = 10.05;\n                            } else {\n                                colIntensity = 1.2 * min(max(lightColsEnds[i], 0.0) / rowIndex, 0.5) + 0.05;\n                            }\n                        }\n                    }\n                }\n            }\n            // ==============\n\n            // ==============\n            // Render the characters\n            // ==============\n            int modX = int((mod(vUv.x*1000.0, 10.0)*10.0)/10.0);\n            int modY = int((mod( (vUv.y+colIndex*rand(vec2(colIndex, colIndex))) * 1000.0, 10.0)*10.0)/10.0);\n\n            float x = floor(vUv.x*1000.0 / 10.0);\n            float y = floor(vUv.y*1000.0 / 10.0);\n\n            vec4 texRand = texture2D(texture, vec2(x, y));\n            int charSelected = int(rand(vec2(x * texRand.r, y * texRand.r)) *2.0);\n\n            float val = 0.0;\n\n            if (charSelected==0) {\n                // Draw '0'\n                if ((modY==1 || modY==8) && (modX>=3 && modX<=6) ||\n                    (modY>=2 && modY<=7) && (modX==2 || modX==3 || modX==6 || modX==7)) {\n                    val = 1.0;\n                }\n            } else {\n                // Draw '1'\n                if ((modY==7 || modY==6) && modX==4 ||\n                    (modX==5 || modX==6) && modY>0 && modY<9 ||\n                    (modY==2 || modY==1) && modX>=4 && modX<=7) {\n                    val = 1.0;\n                }\n            }\n\n            sobel.g += val * (sobel.g + colIntensity);\n            sobel.r = 0.3 * val * (sobel.g + colIntensity);\n            sobel.b = sobel.r;\n\n            // ==============\n\n            vec4 newColour = vec4( sobel, 1.0 );\n        ";
+        }
+    }, {
+        key: "fireBody",
+        get: function get() {
+            return "\n\n            // Get the pixel below by this amount\n            const int amount = 15;\n            vec4 firePixel = vec4(0.0, 0.0, 0.0, 1.0);\n\n            vec4 distort = texture2D(fireTex, vec2(vUv.x*4.0, (vUv.y-fireTimer/2.0)*4.0));\n            vec4 noise = texture2D(noiseTex, vec2(vUv.x*4.0, (vUv.y-fireTimer)*4.0));\n\n            // Go down a few pixels and find if there is a line within ^^ amount of pixels\n            for (int r=0; r<amount; r++) {\n                vec4 n[9];\n                float fr = float(r) * h;\n                n[0] = texture2D(texture, vUv + vec2(0.0, 0.0 - fr) );\n                n[1] = texture2D(texture, vUv + vec2(w, 0.0 - fr) );\n                n[2] = texture2D(texture, vUv + vec2(2.0*w, 0.0 - fr) );\n                n[3] = texture2D(texture, vUv + vec2(0.0*w, h - fr) );\n                n[4] = texture2D(texture, vUv + vec2(w, h - fr) );\n                n[5] = texture2D(texture, vUv + vec2(2.0*w, h - fr) );\n                n[6] = texture2D(texture, vUv + vec2(0.0, 2.0*h - fr) );\n                n[7] = texture2D(texture, vUv + vec2(w, 2.0*h - fr) );\n                n[8] = texture2D(texture, vUv + vec2(2.0*w, 2.0*h - fr) );\n\n                vec4 sobel_x = n[2] + (2.0*n[5]) + n[8] - (n[0] + (2.0*n[3]) + n[6]);\n                vec4 sobel_y = n[0] + (2.0*n[1]) + n[2] - (n[6] + (2.0*n[7]) + n[8]);\n\n                float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0;\n                float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0;\n                float sobel = sqrt(avg_x*avg_x) + sqrt(avg_y*avg_y);\n\n\n                if (sobel > 0.5) {\n                    firePixel.r = (1.0 - float(r) / float(amount)) * distort.r * noise.b;\n                    firePixel.g = firePixel.r / 2.0;\n\n                    if (r<amount/2) {\n                        firePixel.g += (1.0 - float(r) / float(amount/2)) * distort.r * noise.b / 8.0;\n                        firePixel.r += (1.0 - float(r) / float(amount/2)) * distort.r * noise.b / 8.0;\n                    }\n\n                    if (r<2) {\n                        firePixel.r = firePixel.r * 1.1;\n                        firePixel.g = firePixel.g * 1.3;\n                    }\n\n                    break;\n                }\n            }\n\n            vec4 newColour = pixel / 3.0;\n            newColour.r += firePixel.r;\n            newColour.g += firePixel.g;\n        ";
         }
     }]);
 
@@ -525,10 +580,18 @@ window.addEventListener("load", function () {
         if (document.querySelector("button[data-filter=sobel3x3]").disabled && rgb.r == 0 && rgb.g == 255 && rgb.b == 0 && surfaceCheckbox.checked && !reducedColoursCheckbox.checked && !invertedCheckbox.checked) {
             toggleMatrix();
         }
+
+        if (document.querySelector("button[data-filter=sobel3x3]").disabled && rgb.r == 255 && rgb.g == 0 && rgb.b == 0 && surfaceCheckbox.checked && !reducedColoursCheckbox.checked && !invertedCheckbox.checked) {
+            toggleFire();
+        }
     };
 
     if (location.hash == "#matrix") {
         toggleMatrix();
+    }
+
+    if (location.hash == "#fire") {
+        toggleFire();
     }
 });
 
