@@ -402,7 +402,7 @@ window.addEventListener("load", () => {
 
         // Audio
         if (Filters.fire) {
-            audioElem.currentTime = 47
+            // audioElem.currentTime = 47
             audioElem.play()
         }
     }
