@@ -344,11 +344,11 @@ class Filters {
 
                 float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0;
                 float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0;
-                float sobel = sqrt(avg_x*avg_x) + sqrt(avg_y*avg_y);
+                float sobel = sqrt(avg_x*avg_x) + sqrt(avg_y*avg_y) * noise.b;
 
 
                 if (sobel > 0.5) {
-                    firePixel.r = (1.0 - float(r) / float(amount)) * distort.r * noise.b;
+                    firePixel.r = (1.0 - float(r) / float(amount)) * distort.r * sobel;
                     firePixel.g = firePixel.r / 2.0;
 
                     if (r<amount/2) {
