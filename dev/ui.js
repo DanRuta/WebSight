@@ -2,6 +2,7 @@
 
 window.addEventListener("load", () => {
 
+    Filters.colourBlindness = "none"
     const filters = Filters.availableFilters
     const initialFilter = window.localStorage.getItem("filter") || "sobel3x3"
 
@@ -73,6 +74,8 @@ window.addEventListener("load", () => {
 
     const edgePicker = document.getElementById("edge-picker")
     const surfacePicker = document.getElementById("surface-picker")
+
+    colourBlindness.addEventListener("change", () => updateColourBlindness(colourBlindness.value))
 
     window.updateColour = (type, jscolor) => {
         const rgb = {

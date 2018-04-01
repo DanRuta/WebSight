@@ -279,7 +279,6 @@ window.addEventListener("load", () => {
 
     window.setShader = shader => {
         Filters.shader = shader
-        console.log("setShader")
         boxMaterial.fragmentShader = Filters.compileShader(shader)
         boxMaterial.needsUpdate = true
     }
@@ -333,6 +332,12 @@ window.addEventListener("load", () => {
             boxMaterial.uniforms.surfaceB.value = surfaceCache.b
         }
 
+        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader)
+        boxMaterial.needsUpdate = true
+    }
+
+    window.updateColourBlindness = type => {
+        Filters.colourBlindness = type.toLowerCase()
         boxMaterial.fragmentShader = Filters.compileShader(Filters.shader)
         boxMaterial.needsUpdate = true
     }
@@ -460,6 +465,8 @@ class Filters {
                     ${this.hasBackground ? this.addBackground : ""}
 
                     ${this.hasReducedColours ? this.reducedColoursBody : ""}
+
+                    ${this.colourBlindness && this.colourBlindness != "none" ? this.colourBlindnessBody : ""}
 
                     ${this.isInverted ? this.invertedBody : ""}
 
@@ -754,12 +761,10 @@ class Filters {
 
                 float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0;
                 float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0;
-                // float sobel = sqrt(avg_x*avg_x) + sqrt(avg_y*avg_y);
                 float sobel = sqrt(avg_x*avg_x) + sqrt(avg_y*avg_y) * noise.b;
 
 
                 if (sobel > 0.5) {
-                    // firePixel.r = (1.0 - float(r) / float(amount)) * distort.r * noise.b;
                     firePixel.r = (1.0 - float(r) / float(amount)) * distort.r * sobel;
                     firePixel.g = firePixel.r / 2.0;
 
@@ -782,11 +787,34 @@ class Filters {
             newColour.g += firePixel.g;
         `
     }
+
+    static get colourBlindnessBody () {
+
+        // https://github.com/MaPePeR/jsColorblindSimulator/blob/master/colorblind.js
+        const effects = {
+            protanopia: [56.667, 43.333, 0,   55.833, 44.167, 0,   0, 24.167, 75.833],
+            protanomaly: [81.667, 18.333, 0,  33.333, 66.667, 0,  0, 12.5, 87.5],
+            deuteranopia: [62.5, 37.5, 0,   70, 30, 0,  0, 30, 70],
+            deuteranomaly: [80, 20, 0,   25.833, 74.167, 0,  0, 14.167, 85.833],
+            tritanopia: [95, 5, 0,   0, 43.333, 56.667,   0, 47.5, 52.5],
+            tritanomaly: [96.667, 3.333, 0,   0, 73.333, 26.667,   0, 18.333, 81.667],
+            achromatopsia: [29.9, 58.7, 11.4,   29.9, 58.7, 11.4,   29.9, 58.7, 11.4],
+            achromatomaly: [61.8, 32, 6.2,   16.3, 77.5, 6.2,   16.3, 32.0, 51.6]
+        }
+        const M = effects[this.colourBlindness]
+
+        return `
+            gl_FragColor.r = gl_FragColor.r * ${M[0].toFixed(3)} / 100.0 + gl_FragColor.g * ${M[1].toFixed(3)} / 100.0 + gl_FragColor.b * ${M[2].toFixed(3)} / 100.0;
+            gl_FragColor.g = gl_FragColor.r * ${M[3].toFixed(3)} / 100.0 + gl_FragColor.g * ${M[4].toFixed(3)} / 100.0 + gl_FragColor.b * ${M[5].toFixed(3)} / 100.0;
+            gl_FragColor.b = gl_FragColor.r * ${M[6].toFixed(3)} / 100.0 + gl_FragColor.g * ${M[7].toFixed(3)} / 100.0 + gl_FragColor.b * ${M[8].toFixed(3)} / 100.0;
+        `
+    }
 }
 "use strict"
 
 window.addEventListener("load", () => {
 
+    Filters.colourBlindness = "none"
     const filters = Filters.availableFilters
     const initialFilter = window.localStorage.getItem("filter") || "sobel3x3"
 
@@ -858,6 +886,8 @@ window.addEventListener("load", () => {
 
     const edgePicker = document.getElementById("edge-picker")
     const surfacePicker = document.getElementById("surface-picker")
+
+    colourBlindness.addEventListener("change", () => updateColourBlindness(colourBlindness.value))
 
     window.updateColour = (type, jscolor) => {
         const rgb = {

@@ -275,7 +275,6 @@ window.addEventListener("load", function () {
 
     window.setShader = function (shader) {
         Filters.shader = shader;
-        console.log("setShader");
         boxMaterial.fragmentShader = Filters.compileShader(shader);
         boxMaterial.needsUpdate = true;
     };
@@ -343,6 +342,12 @@ window.addEventListener("load", function () {
             boxMaterial.uniforms.surfaceB.value = surfaceCache.b;
         }
 
+        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader);
+        boxMaterial.needsUpdate = true;
+    };
+
+    window.updateColourBlindness = function (type) {
+        Filters.colourBlindness = type.toLowerCase();
         boxMaterial.fragmentShader = Filters.compileShader(Filters.shader);
         boxMaterial.needsUpdate = true;
     };
@@ -425,7 +430,7 @@ var Filters = function () {
     _createClass(Filters, null, [{
         key: "compileShader",
         value: function compileShader(name) {
-            return "\n            uniform sampler2D texture;\n            uniform sampler2D fireTex;\n            uniform sampler2D noiseTex;\n            uniform float width;\n            uniform float height;\n            uniform float radius;\n            uniform float intensity;\n            uniform vec2 resolution;\n            varying vec2 vUv;\n\n            uniform float edgeR;\n            uniform float edgeG;\n            uniform float edgeB;\n\n            uniform float surfaceR;\n            uniform float surfaceG;\n            uniform float surfaceB;\n\n            uniform float fireTimer;\n            uniform float lightCols[5];\n            uniform float lightColsEnds[5];\n\n            float rand(vec2 co){\n                return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);\n            }\n\n            void main() {\n\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n\n                vec4 pixel = texture2D(texture, vUv);\n\n                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < radius) {\n\n                    " + this[name + "Body"] + "\n\n                    gl_FragColor = newColour*(1.0-intensity) + pixel*intensity;\n\n                    " + (this.hasBackground ? this.addBackground : "") + "\n\n                    " + (this.hasReducedColours ? this.reducedColoursBody : "") + "\n\n                    " + (this.isInverted ? this.invertedBody : "") + "\n\n                } else {\n                    gl_FragColor = vec4(pixel.rgb, 1.0);\n                }\n\n            }\n        ";
+            return "\n            uniform sampler2D texture;\n            uniform sampler2D fireTex;\n            uniform sampler2D noiseTex;\n            uniform float width;\n            uniform float height;\n            uniform float radius;\n            uniform float intensity;\n            uniform vec2 resolution;\n            varying vec2 vUv;\n\n            uniform float edgeR;\n            uniform float edgeG;\n            uniform float edgeB;\n\n            uniform float surfaceR;\n            uniform float surfaceG;\n            uniform float surfaceB;\n\n            uniform float fireTimer;\n            uniform float lightCols[5];\n            uniform float lightColsEnds[5];\n\n            float rand(vec2 co){\n                return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);\n            }\n\n            void main() {\n\n                float w = 1.0 / width;\n                float h = 1.0 / height;\n\n                vec4 pixel = texture2D(texture, vUv);\n\n                if (sqrt( (0.5 - vUv[0])*(0.5 - vUv[0]) + (0.5 - vUv[1])*(0.5 - vUv[1]) ) < radius) {\n\n                    " + this[name + "Body"] + "\n\n                    gl_FragColor = newColour*(1.0-intensity) + pixel*intensity;\n\n                    " + (this.hasBackground ? this.addBackground : "") + "\n\n                    " + (this.hasReducedColours ? this.reducedColoursBody : "") + "\n\n                    " + (this.colourBlindness && this.colourBlindness != "none" ? this.colourBlindnessBody : "") + "\n\n                    " + (this.isInverted ? this.invertedBody : "") + "\n\n                } else {\n                    gl_FragColor = vec4(pixel.rgb, 1.0);\n                }\n\n            }\n        ";
         }
     }, {
         key: "availableFilters",
@@ -491,7 +496,26 @@ var Filters = function () {
     }, {
         key: "fireBody",
         get: function get() {
-            return "\n\n            // Get the pixel below by this amount\n            const int amount = 15;\n            vec4 firePixel = vec4(0.0, 0.0, 0.0, 1.0);\n\n            vec4 distort = texture2D(fireTex, vec2(vUv.x*4.0, (vUv.y-fireTimer/2.0)*4.0));\n            vec4 noise = texture2D(noiseTex, vec2(vUv.x*4.0, (vUv.y-fireTimer)*4.0));\n\n            // Go down a few pixels and find if there is a line within ^^ amount of pixels\n            for (int r=0; r<amount; r++) {\n                vec4 n[9];\n                float fr = float(r) * h;\n                n[0] = texture2D(texture, vUv + vec2(0.0, 0.0 - fr) );\n                n[1] = texture2D(texture, vUv + vec2(w, 0.0 - fr) );\n                n[2] = texture2D(texture, vUv + vec2(2.0*w, 0.0 - fr) );\n                n[3] = texture2D(texture, vUv + vec2(0.0*w, h - fr) );\n                n[4] = texture2D(texture, vUv + vec2(w, h - fr) );\n                n[5] = texture2D(texture, vUv + vec2(2.0*w, h - fr) );\n                n[6] = texture2D(texture, vUv + vec2(0.0, 2.0*h - fr) );\n                n[7] = texture2D(texture, vUv + vec2(w, 2.0*h - fr) );\n                n[8] = texture2D(texture, vUv + vec2(2.0*w, 2.0*h - fr) );\n\n                vec4 sobel_x = n[2] + (2.0*n[5]) + n[8] - (n[0] + (2.0*n[3]) + n[6]);\n                vec4 sobel_y = n[0] + (2.0*n[1]) + n[2] - (n[6] + (2.0*n[7]) + n[8]);\n\n                float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0;\n                float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0;\n                // float sobel = sqrt(avg_x*avg_x) + sqrt(avg_y*avg_y);\n                float sobel = sqrt(avg_x*avg_x) + sqrt(avg_y*avg_y) * noise.b;\n\n\n                if (sobel > 0.5) {\n                    // firePixel.r = (1.0 - float(r) / float(amount)) * distort.r * noise.b;\n                    firePixel.r = (1.0 - float(r) / float(amount)) * distort.r * sobel;\n                    firePixel.g = firePixel.r / 2.0;\n\n                    if (r<amount/2) {\n                        firePixel.g += (1.0 - float(r) / float(amount/2)) * distort.r * noise.b / 8.0;\n                        firePixel.r += (1.0 - float(r) / float(amount/2)) * distort.r * noise.b / 8.0;\n                    }\n\n                    if (r<2) {\n                        firePixel.r = firePixel.r * 1.1;\n                        firePixel.g = firePixel.g * 1.3;\n                    }\n\n                    break;\n                }\n            }\n\n            vec4 newColour = pixel / 3.0;\n            newColour.r += firePixel.r;\n            newColour.g += firePixel.g;\n        ";
+            return "\n\n            // Get the pixel below by this amount\n            const int amount = 15;\n            vec4 firePixel = vec4(0.0, 0.0, 0.0, 1.0);\n\n            vec4 distort = texture2D(fireTex, vec2(vUv.x*4.0, (vUv.y-fireTimer/2.0)*4.0));\n            vec4 noise = texture2D(noiseTex, vec2(vUv.x*4.0, (vUv.y-fireTimer)*4.0));\n\n            // Go down a few pixels and find if there is a line within ^^ amount of pixels\n            for (int r=0; r<amount; r++) {\n                vec4 n[9];\n                float fr = float(r) * h;\n                n[0] = texture2D(texture, vUv + vec2(0.0, 0.0 - fr) );\n                n[1] = texture2D(texture, vUv + vec2(w, 0.0 - fr) );\n                n[2] = texture2D(texture, vUv + vec2(2.0*w, 0.0 - fr) );\n                n[3] = texture2D(texture, vUv + vec2(0.0*w, h - fr) );\n                n[4] = texture2D(texture, vUv + vec2(w, h - fr) );\n                n[5] = texture2D(texture, vUv + vec2(2.0*w, h - fr) );\n                n[6] = texture2D(texture, vUv + vec2(0.0, 2.0*h - fr) );\n                n[7] = texture2D(texture, vUv + vec2(w, 2.0*h - fr) );\n                n[8] = texture2D(texture, vUv + vec2(2.0*w, 2.0*h - fr) );\n\n                vec4 sobel_x = n[2] + (2.0*n[5]) + n[8] - (n[0] + (2.0*n[3]) + n[6]);\n                vec4 sobel_y = n[0] + (2.0*n[1]) + n[2] - (n[6] + (2.0*n[7]) + n[8]);\n\n                float avg_x = (sobel_x.r + sobel_x.g + sobel_x.b) / 3.0;\n                float avg_y = (sobel_y.r + sobel_y.g + sobel_y.b) / 3.0;\n                float sobel = sqrt(avg_x*avg_x) + sqrt(avg_y*avg_y) * noise.b;\n\n\n                if (sobel > 0.5) {\n                    firePixel.r = (1.0 - float(r) / float(amount)) * distort.r * sobel;\n                    firePixel.g = firePixel.r / 2.0;\n\n                    if (r<amount/2) {\n                        firePixel.g += (1.0 - float(r) / float(amount/2)) * distort.r * noise.b / 8.0;\n                        firePixel.r += (1.0 - float(r) / float(amount/2)) * distort.r * noise.b / 8.0;\n                    }\n\n                    if (r<2) {\n                        firePixel.r = firePixel.r * 1.1;\n                        firePixel.g = firePixel.g * 1.3;\n                    }\n\n                    break;\n                }\n            }\n\n            vec4 newColour = pixel / 3.0;\n            newColour.r += firePixel.r;\n            newColour.g += firePixel.g;\n        ";
+        }
+    }, {
+        key: "colourBlindnessBody",
+        get: function get() {
+
+            // https://github.com/MaPePeR/jsColorblindSimulator/blob/master/colorblind.js
+            var effects = {
+                protanopia: [56.667, 43.333, 0, 55.833, 44.167, 0, 0, 24.167, 75.833],
+                protanomaly: [81.667, 18.333, 0, 33.333, 66.667, 0, 0, 12.5, 87.5],
+                deuteranopia: [62.5, 37.5, 0, 70, 30, 0, 0, 30, 70],
+                deuteranomaly: [80, 20, 0, 25.833, 74.167, 0, 0, 14.167, 85.833],
+                tritanopia: [95, 5, 0, 0, 43.333, 56.667, 0, 47.5, 52.5],
+                tritanomaly: [96.667, 3.333, 0, 0, 73.333, 26.667, 0, 18.333, 81.667],
+                achromatopsia: [29.9, 58.7, 11.4, 29.9, 58.7, 11.4, 29.9, 58.7, 11.4],
+                achromatomaly: [61.8, 32, 6.2, 16.3, 77.5, 6.2, 16.3, 32.0, 51.6]
+            };
+            var M = effects[this.colourBlindness];
+
+            return "\n            gl_FragColor.r = gl_FragColor.r * " + M[0].toFixed(3) + " / 100.0 + gl_FragColor.g * " + M[1].toFixed(3) + " / 100.0 + gl_FragColor.b * " + M[2].toFixed(3) + " / 100.0;\n            gl_FragColor.g = gl_FragColor.r * " + M[3].toFixed(3) + " / 100.0 + gl_FragColor.g * " + M[4].toFixed(3) + " / 100.0 + gl_FragColor.b * " + M[5].toFixed(3) + " / 100.0;\n            gl_FragColor.b = gl_FragColor.r * " + M[6].toFixed(3) + " / 100.0 + gl_FragColor.g * " + M[7].toFixed(3) + " / 100.0 + gl_FragColor.b * " + M[8].toFixed(3) + " / 100.0;\n        ";
         }
     }]);
 
@@ -502,6 +526,7 @@ var Filters = function () {
 
 window.addEventListener("load", function () {
 
+    Filters.colourBlindness = "none";
     var filters = Filters.availableFilters;
     var initialFilter = window.localStorage.getItem("filter") || "sobel3x3";
 
@@ -589,6 +614,10 @@ window.addEventListener("load", function () {
 
     var edgePicker = document.getElementById("edge-picker");
     var surfacePicker = document.getElementById("surface-picker");
+
+    colourBlindness.addEventListener("change", function () {
+        return updateColourBlindness(colourBlindness.value);
+    });
 
     window.updateColour = function (type, jscolor) {
         var rgb = {

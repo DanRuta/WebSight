@@ -279,7 +279,6 @@ window.addEventListener("load", () => {
 
     window.setShader = shader => {
         Filters.shader = shader
-        console.log("setShader")
         boxMaterial.fragmentShader = Filters.compileShader(shader)
         boxMaterial.needsUpdate = true
     }
@@ -333,6 +332,12 @@ window.addEventListener("load", () => {
             boxMaterial.uniforms.surfaceB.value = surfaceCache.b
         }
 
+        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader)
+        boxMaterial.needsUpdate = true
+    }
+
+    window.updateColourBlindness = type => {
+        Filters.colourBlindness = type.toLowerCase()
         boxMaterial.fragmentShader = Filters.compileShader(Filters.shader)
         boxMaterial.needsUpdate = true
     }

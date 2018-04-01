@@ -170,6 +170,11 @@
                 font-size: 110%;
             }
 
+            #colourBlindness {
+                font-size: 1em;
+                margin: 10px;
+            }
+
             img, audio {
                 display: none;
             }
@@ -200,6 +205,20 @@
                         <label for="invertedCheckbox"><span>Inverted</span><input id="invertedCheckbox" type="checkbox"></label>
                         <label for="reducedColoursCheckbox"><span>Reduced Colours</span><input id="reducedColoursCheckbox" type="checkbox"></label>
                         <label for="surfaceCheckbox"><span>Surface Colours</span><input id="surfaceCheckbox" type="checkbox" checked></label>
+
+                        <label for="colourBlindness">
+                            <select id="colourBlindness">
+                                <option value="none">No colour blindness</option>
+                                <option value="protanopia">Protanopia</option>
+                                <option value="protanomaly">Protanomaly</option>
+                                <option value="deuteranopia">Deuteranopia</option>
+                                <option value="deuteranomaly">Deuteranomaly</option>
+                                <option value="tritanopia">Tritanopia</option>
+                                <option value="tritanomaly">Tritanomaly</option>
+                                <option value="achromatopsia">Achromatopsia</option>
+                                <option value="achromatomaly">Achromatomaly</option>
+                            </select>
+                        </label>
                     </div>
 
                     <div class="colour-pickers">
