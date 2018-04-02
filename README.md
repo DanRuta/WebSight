@@ -3,6 +3,8 @@ WebSight
 
 Browser based real time VR video pass-through augmentation via WebGL shaders such as edge detection, to aid the visually impaired.
 
+To aid designers, the major colour blindness types can also be simulated through shader configurations.
+
 Live PWA demo: https://websight.danruta.co.uk/
 
 ---
