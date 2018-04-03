@@ -45,13 +45,13 @@ class Filters {
 
                     ${this[name+"Body"]}
 
+                    ${this.colourBlindness && this.colourBlindness != "none" ? this.colourBlindnessBody : ""}
+
                     gl_FragColor = newColour*(1.0-intensity) + pixel*intensity;
 
                     ${this.hasBackground ? this.addBackground : ""}
 
                     ${this.hasReducedColours ? this.reducedColoursBody : ""}
-
-                    ${this.colourBlindness && this.colourBlindness != "none" ? this.colourBlindnessBody : ""}
 
                     ${this.isInverted ? this.invertedBody : ""}
 
@@ -389,9 +389,9 @@ class Filters {
         const M = effects[this.colourBlindness]
 
         return `
-            gl_FragColor.r = gl_FragColor.r * ${M[0].toFixed(5)} + gl_FragColor.g * ${M[1].toFixed(5)} + gl_FragColor.b * ${M[2].toFixed(5)};
-            gl_FragColor.g = gl_FragColor.r * ${M[3].toFixed(5)} + gl_FragColor.g * ${M[4].toFixed(5)} + gl_FragColor.b * ${M[5].toFixed(5)};
-            gl_FragColor.b = gl_FragColor.r * ${M[6].toFixed(5)} + gl_FragColor.g * ${M[7].toFixed(5)} + gl_FragColor.b * ${M[8].toFixed(5)};
+            newColour.r = newColour.r * ${M[0].toFixed(5)} + newColour.g * ${M[1].toFixed(5)} + newColour.b * ${M[2].toFixed(5)};
+            newColour.g = newColour.r * ${M[3].toFixed(5)} + newColour.g * ${M[4].toFixed(5)} + newColour.b * ${M[5].toFixed(5)};
+            newColour.b = newColour.r * ${M[6].toFixed(5)} + newColour.g * ${M[7].toFixed(5)} + newColour.b * ${M[8].toFixed(5)};
         `
     }
 }
