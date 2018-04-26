@@ -185,7 +185,7 @@ window.addEventListener("load", () => {
                 navigator.mozGetUserMedia(
                     {video: { facingMode: "environment" }},
                     stream => {
-                        video.src = window.URL.createObjectURL(stream)
+                        video.srcObject = stream
                     },
                     err => {
                         console.log(err)
@@ -199,7 +199,7 @@ window.addEventListener("load", () => {
                     navigator.mediaDevices
                         .getUserMedia({ video: { facingMode: "environment" } })
                         .then(stream => {
-                            video.src = window.URL.createObjectURL(stream)
+                            video.srcObject = stream
                         })
                         .catch(err => {
                             console.log(err)
@@ -223,7 +223,7 @@ window.addEventListener("load", () => {
                         getUserMedia(
                             { video: { facingMode: "environment" } },
                             stream => {
-                                video.src = window.URL.createObjectURL(stream)
+                                video.srcObject = stream
                             },
                             err => {
                                 console.log(err)

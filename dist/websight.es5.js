@@ -196,7 +196,7 @@ window.addEventListener("load", function () {
 
             if ("mozGetUserMedia" in navigator) {
                 navigator.mozGetUserMedia({ video: { facingMode: "environment" } }, function (stream) {
-                    video.src = window.URL.createObjectURL(stream);
+                    video.srcObject = stream;
                 }, function (err) {
                     console.log(err);
                     alert(errMessage);
@@ -206,7 +206,7 @@ window.addEventListener("load", function () {
 
                 if (mediaDevicesSupport) {
                     navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function (stream) {
-                        video.src = window.URL.createObjectURL(stream);
+                        video.srcObject = stream;
                     }).catch(function (err) {
                         console.log(err);
                         getVideoFeedAttempts++;
@@ -223,7 +223,7 @@ window.addEventListener("load", function () {
 
                     if (getUserMedia) {
                         getUserMedia({ video: { facingMode: "environment" } }, function (stream) {
-                            video.src = window.URL.createObjectURL(stream);
+                            video.srcObject = stream;
                         }, function (err) {
                             console.log(err);
                             alert(errMessage);
