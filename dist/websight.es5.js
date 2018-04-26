@@ -181,6 +181,17 @@ window.addEventListener("load", function () {
     var getVideoFeedAttempts = 0;
 
     var getVideoFeed = function getVideoFeed() {
+
+        var errMessage = "There was an error accessing the camera.";
+
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+            errMessage += " iOS might still have no support for camera API.";
+        }
+
+        if (!location.protocol.startsWith("https")) {
+            errMessage += " Please make sure you are using https.";
+        }
+
         try {
 
             if ("mozGetUserMedia" in navigator) {
@@ -188,7 +199,7 @@ window.addEventListener("load", function () {
                     video.src = window.URL.createObjectURL(stream);
                 }, function (err) {
                     console.log(err);
-                    alert("There was an error accessing the camera. Please try again and ensure you are using https");
+                    alert(errMessage);
                 });
             } else {
                 var mediaDevicesSupport = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
@@ -204,7 +215,7 @@ window.addEventListener("load", function () {
                         if (getVideoFeedAttempts < 3) {
                             getVideoFeed();
                         } else {
-                            alert("There was an error accessing the camera. Please try again and ensure you are using https");
+                            alert(errMessage);
                         }
                     });
                 } else {
@@ -215,7 +226,7 @@ window.addEventListener("load", function () {
                             video.src = window.URL.createObjectURL(stream);
                         }, function (err) {
                             console.log(err);
-                            alert("There was an error accessing the camera. Please try again and ensure you are using https.");
+                            alert(errMessage);
                         });
                     } else {
                         alert("Camera not available");
@@ -223,7 +234,7 @@ window.addEventListener("load", function () {
                 }
             }
         } catch (e) {
-            alert("Error getting camera feed. Please ensure you are using https.");
+            alert(errMessage);
         }
     };
 
