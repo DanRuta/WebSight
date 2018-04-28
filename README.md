@@ -1,11 +1,14 @@
 WebSight
 ===
 
-Browser based real time VR video pass-through augmentation via WebGL shaders such as edge detection, to aid the visually impaired.
+Aiding the visually impaired through real time augmented reality via AI object detection and WebGL shaders effects such as edge detection, and colour adjustments.
 
 To aid designers, the major colour blindness types can also be simulated through shader configurations.
 
+Article: (soon)
+Research paper link: (soon)
 Live PWA demo: https://websight.danruta.co.uk/
+
 
 ---
 
@@ -24,4 +27,4 @@ WebSight is a small experiment that uses highly configurable WebGL shaders in ph
 ```npm install``` the dependencies and run grunt to minify the code as you go.
 
 #### To run
-There is a demo ```index.html``` file included. You must serve this via the included ```server.js``` file which you can start with node.js.
+You must serve this via the included ```server.js``` file which you can run with node.js.
