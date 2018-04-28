@@ -3,7 +3,7 @@
 class Filters {
 
     static get availableFilters () {
-        return ["No effect", "Sobel 3x3", "Sobel 5x5", "Frei-Chen"]
+        return ["No edges", "Sobel 3x3", "Sobel 5x5", "Frei-Chen"]
     }
 
     static compileShader (name) {
@@ -63,7 +63,7 @@ class Filters {
         `
     }
 
-    static get noeffectBody () {
+    static get noedgesBody () {
         return `vec4 newColour = vec4(pixel.rgb, 1.0);`
     }
 

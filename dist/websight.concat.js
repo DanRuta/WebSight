@@ -1,8 +1,49 @@
 "use strict"
 
+let model
+let inferring = false
+let inferenceInterval = parseInt(localStorage.getItem("inferenceInterval")) || 500
 const degToRad = x => x * Math.PI / 180
 
-window.addEventListener("load", () => {
+const classColours = {
+    // defaults
+    person: "ffff00", // yellow
+    vehicles: "ff0000", // red
+    animals: "00ffff", // aqua
+    foods: "00ff00", // green
+    things: "800080", // purle
+    furniture: "0000ff" // blue
+}
+
+const activeClasses = {
+    person: true,
+    vehicles: true,
+    animals: true,
+    foods: true,
+    things: true,
+    furniture: true
+}
+
+const classCategories = {
+    animals: ["bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe"],
+    vehicles: ["car", "bicycle", "motorbike", "aeroplane", "bus", "train", "truck", "boat"],
+    foods: ["banana", "apple", "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake"],
+    things: ["bench", "backpack", "umbrella", "handbag", "suitcase", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl",
+    "tvmonitor", "laptop", "mouse", "remote", "keyboard", "cell phone", "toothbrush"],
+    furniture: ["chair", "sofa", "bed", "diningtable", "toilet", "microwave", "oven", "toaster", "sink", "refrigerator"]
+}
+
+
+window.addEventListener("load", async () => {
+
+    // YOLO
+    inferenceIntervalInput.value = inferenceInterval
+
+    const inferenceCanvas = document.createElement("canvas")
+    inferenceCanvas.height = 416
+    inferenceCanvas.width = 416
+    const inferenceContext = inferenceCanvas.getContext("2d")
+
     // Renderer and VR stuff
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     renderer.setSize(window.innerWidth, window.innerHeight)
@@ -63,6 +104,13 @@ window.addEventListener("load", () => {
     let boxMaterial
     let box
 
+    // Detection box/canvas
+    window.detectionCanvas = document.createElement("canvas")
+    let detectionContext
+    let detectionTexture
+    let detectionMaterial
+    let detectionBox
+
     const makeBoxObject = () => {
         window.video = document.createElement("video")
         video.autoplay = true
@@ -70,12 +118,23 @@ window.addEventListener("load", () => {
         video.height = window.innerHeight / 2
         getVideoFeed()
 
+        detectionCanvas.width = video.width
+        detectionCanvas.height = video.height
+        window.detectionContext = detectionContext = detectionCanvas.getContext("2d")
+        detectionContext.strokeWidth = 5
+        detectionContext.font = "20px Arial"
+        detectionContext.textAlign = "center"
+
         const boxWidth = video.width
         const boxHeight = video.height
 
         const boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, 1)
         texture = new THREE.Texture(video)
         texture.minFilter = THREE.NearestFilter
+
+        const detectionGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, 1)
+        detectionTexture = new THREE.Texture(detectionCanvas)
+        detectionTexture.minFilter = THREE.NearestFilter
 
         fireTexture = new THREE.Texture(fire)
         fireTexture.minFilter = THREE.NearestFilter
@@ -158,9 +217,12 @@ window.addEventListener("load", () => {
             vertexShader: vertexShaderSource.text,
             fragmentShader: Filters.compileShader("sobel3x3")
         })
-
         box = new THREE.Mesh(boxGeometry, boxMaterial)
         scene.add(box)
+
+        detectionMaterial = new THREE.MeshBasicMaterial({map: detectionTexture, transparent: true})
+        detectionBox = new THREE.Mesh(detectionGeometry, detectionMaterial)
+        scene.add(detectionBox)
 
         camera.position.z = 0.5 * boxWidth * Math.atan(degToRad(90 - fov / 2)) + 100
     }
@@ -247,6 +309,7 @@ window.addEventListener("load", () => {
 
         if (video.currentTime) {
             texture.needsUpdate = true
+            detectionTexture.needsUpdate = true
         }
 
         if (Filters.fire) {
@@ -259,6 +322,75 @@ window.addEventListener("load", () => {
         }
 
         effect.render(scene, camera)
+
+        // YOLO
+        const drawRect = (left, right, top, bottom, className, classProb, category) => {
+
+            if (!activeClasses[category]) return
+
+            left = left / 416 * detectionCanvas.width
+            right = right / 416 * detectionCanvas.width
+            top = top / 416 * detectionCanvas.height
+            bottom = bottom / 416 * detectionCanvas.height
+
+            const text = `${className} [${parseInt(classProb*100)}%]`
+            const textSize = detectionContext.measureText(text)
+            const textLeft = left+(right-left)/2
+
+            detectionContext.strokeStyle = `#${classColours[category]}`
+            detectionContext.fillStyle = "white"
+            detectionContext.fillRect(textLeft-textSize.width/2, top, textSize.width, 20)
+            detectionContext.fillStyle = "black"
+
+            detectionContext.beginPath()
+            detectionContext.fillText(text, textLeft, top+15)
+            detectionContext.rect(left, top, right-left, bottom-top)
+            detectionContext.stroke()
+        }
+
+        if (!inferring) {
+
+            if (window.aiTurnedOn) {
+                console.log("inferring...")
+
+                inferring = true
+
+                setTimeout(() => {
+
+                    inferenceContext.drawImage(video, 0, 0, 416, 416)
+
+                    const inputImage = tf.tidy(() => {
+                        const scalar = tf.scalar(255)
+                        const input = cropImage(tf.fromPixels(inferenceCanvas)).expandDims(0).toFloat().div(scalar)
+                        return input
+                    })
+                    detectionContext.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height)
+
+                    yolo(inputImage, model).then(boxes => {
+                        boxes.forEach(({left, right, top, bottom, className, classProb}) => {
+
+                            if (className=="person") {
+                                drawRect(left, right, top, bottom, "Person", classProb, "person")
+                            } else {
+
+                                const classes = Object.keys(classCategories)
+
+                                for (let c=0; c<classes.length; c++) {
+                                    if (classCategories[classes[c]].includes(className)) {
+                                        drawRect(left, right, top, bottom, capitalize(className), classProb, classes[c])
+                                        break
+                                    }
+                                }
+                            }
+                        })
+
+                        inferring = false
+                    })
+                }, inferenceInterval)
+            } else {
+                detectionContext.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height)
+            }
+        }
     }
 
     makeBoxObject()
@@ -422,14 +554,40 @@ window.addEventListener("load", () => {
             audioElem.play()
         }
     }
+
+    initUI()
 })
 
+// Helper functions
+function cropImage(img) {
+    const size = Math.min(img.shape[0], img.shape[1])
+    const centerHeight = img.shape[0] / 2
+    const beginHeight = centerHeight - (size / 2)
+    const centerWidth = img.shape[1] / 2
+    const beginWidth = centerWidth - (size / 2)
+    return img.slice([beginHeight, beginWidth, 0], [size, size, 3])
+}
+
+function capitalize (string) {
+    return string.slice(0, 1).toUpperCase() + string.slice(1, string.length)
+}
+
+function loadScript (src) {
+    return new Promise((resolve) => {
+        fetch(src).then(r => r.text()).then(source => {
+            const scriptElem = document.createElement("script")
+            scriptElem.innerHTML = source
+            document.head.appendChild(scriptElem)
+            resolve()
+        })
+    })
+}
 "use strict"
 
 class Filters {
 
     static get availableFilters () {
-        return ["No effect", "Sobel 3x3", "Sobel 5x5", "Frei-Chen"]
+        return ["No edges", "Sobel 3x3", "Sobel 5x5", "Frei-Chen"]
     }
 
     static compileShader (name) {
@@ -489,7 +647,7 @@ class Filters {
         `
     }
 
-    static get noeffectBody () {
+    static get noedgesBody () {
         return `vec4 newColour = vec4(pixel.rgb, 1.0);`
     }
 
@@ -823,7 +981,7 @@ class Filters {
 }
 "use strict"
 
-window.addEventListener("load", () => {
+const initUI = () => {
 
     Filters.colourBlindness = "none"
     const filters = Filters.availableFilters
@@ -935,9 +1093,109 @@ window.addEventListener("load", () => {
         toggleFire()
     }
 
+    // Fire shader
     const audioSrc = document.createElement("source")
     audioSrc.src = "fire.mp3"
     audioElem.appendChild(audioSrc)
-})
+
+    // YOLO
+    let loadedAI = false
+    const aiCheckbox = document.getElementById("ai-detection-checkbox")
+    aiCheckbox.addEventListener("click", () => {
+
+        if (!loadedAI) {
+
+            // Lazy load all the necessary scripts
+            const scripts = [
+                "lib/class_names.js",
+                "lib/postprocess.js",
+                "lib/yolo.js"
+            ]
+
+            loadScript("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.9.0").then(() => {
+                Promise.all(scripts.map(s => loadScript(s))).then(async () => {
+
+                    aiSection.style.display = "block"
+
+                    model = await downloadModel()
+                    yoloSpinner.remove()
+
+                    loadedAI = true
+                    window.aiTurnedOn = true
+
+                    // Active checkboxes
+                    let yoloActiveClasses = window.localStorage.getItem("yoloActiveClasses")
+                    if (yoloActiveClasses) {
+                        yoloActiveClasses = JSON.parse(yoloActiveClasses)
+
+                        Object.keys(yoloActiveClasses).forEach(key => {
+                            activeClasses[key] = yoloActiveClasses[key]
+                        })
+                    }
+
+                    // Cached colours
+                    let yoloClassColours = window.localStorage.getItem("yoloClassColours")
+                    if (yoloClassColours) {
+                        yoloClassColours = JSON.parse(yoloClassColours)
+
+                        Object.keys(yoloClassColours).forEach(key => {
+                            classColours[key] = yoloClassColours[key]
+                        })
+                    }
+
+                    // Add all the classification groups' toggles and colour inputs
+                    Object.keys(classColours).forEach(key => {
+
+                        const labelElem = document.createElement("label")
+                        labelElem.for = `aiCheckbox-${key}`
+
+                        const checkboxElem = document.createElement("input")
+                        checkboxElem.type = "checkbox"
+                        checkboxElem.checked = activeClasses[key]
+                        labelElem.appendChild(checkboxElem)
+
+                        checkboxElem.addEventListener("click", () => {
+                            activeClasses[key] = checkboxElem.checked
+                            window.localStorage.setItem("yoloActiveClasses", JSON.stringify(activeClasses))
+                        })
+
+                        const labelText = document.createElement("span")
+                        labelText.innerText = capitalize(key)
+                        labelElem.appendChild(labelText)
+
+                        const jsColorInput = document.createElement("input")
+                        const jsColorElem = new jscolor(jsColorInput)
+                        jsColorElem.fromString(classColours[key])
+                        jsColorInput.readonly = true
+
+                        jsColorElem.onFineChange = () => {
+                            classColours[key] = jsColorElem.toHEXString().slice(1, 7)
+                            window.localStorage.setItem("yoloClassColours", JSON.stringify(classColours))
+                        }
+
+                        const container = document.createElement("div")
+                        container.appendChild(labelElem)
+                        container.appendChild(jsColorInput)
+                        aiSection.appendChild(container)
+                    })
+                })
+            })
+
+        } else {
+            window.aiTurnedOn = aiCheckbox.checked
+            aiSection.style.display = window.aiTurnedOn ? "block" : "none"
+        }
+
+        if (!window.aiTurnedOn) {
+            detectionContext.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height)
+        }
+    })
+
+    inferenceIntervalInput.addEventListener("change", () => {
+        inferenceInterval = parseInt(inferenceIntervalInput.value)
+        localStorage.setItem("inferenceInterval", inferenceInterval)
+    })
+}
+
 
 //# sourceMappingURL=websight.concat.js.map

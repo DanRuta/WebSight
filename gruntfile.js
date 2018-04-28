@@ -9,19 +9,8 @@ module.exports = grunt => {
                 dest: "dist/websight.concat.js"
             },
             "deps": {
-                src: ["lib/*.js", "!lib/three.min.js"],
+                src: ["lib/jscolor.js", "lib/StereoEffect.js", "lib/VREffect.js"],
                 dest: "dist/dependencies.concat.js"
-            }
-        },
-
-        babel: {
-            options: {
-                presets: ["env"]
-            },
-            dist: {
-                files: {
-                    "dist/websight.es5.js": ["dist/websight.concat.js"]
-                }
             }
         },
 
@@ -32,8 +21,8 @@ module.exports = grunt => {
                     mangle: false,
                 },
                 files: {
-                    "dist/websight.min.js" : ["dist/websight.es5.js"],
-                    // "dist/dependencies.min.js" : ["lib/three.min.js", "dist/dependencies.concat.js"]
+                    "dist/websight.min.js" : ["dist/websight.concat.js"],
+                    "dist/dependencies.min.js" : ["lib/three.min.js", "dist/dependencies.concat.js"]
                 }
             }
         },
@@ -41,7 +30,7 @@ module.exports = grunt => {
         watch: {
             dev: {
                 files: ["dev/*.js"],
-                tasks: ["concat:js", "babel", "uglify"]
+                tasks: ["concat:js", "uglify"]
             },
             deps: {
                 files: ["lib/*.js"],
@@ -50,10 +39,9 @@ module.exports = grunt => {
         }
     })
 
-    grunt.loadNpmTasks("grunt-babel")
     grunt.loadNpmTasks("grunt-contrib-watch")
     grunt.loadNpmTasks('grunt-contrib-concat')
-    grunt.loadNpmTasks('grunt-contrib-uglify')
+    grunt.loadNpmTasks('grunt-contrib-uglify-es')
 
     grunt.registerTask("default", ["watch"])
 }

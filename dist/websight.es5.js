@@ -6,430 +6,530 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+var inferring = false;
 var degToRad = function degToRad(x) {
     return x * Math.PI / 180;
 };
 
-window.addEventListener("load", function () {
-    // Renderer and VR stuff
-    var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-    renderer.domElement.style.backgroundColor = "black";
+window.addEventListener("load", _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+    var model, inferenceCanvas, inferenceContext, renderer, effect, vrDisplay, closeVR, fov, scene, camera, texture, fireTexture, noiseTexture, boxMaterial, box, detectionCanvas, detectionContext, detectionTexture, detectionMaterial, detectionBox, makeBoxObject, getVideoFeedAttempts, getVideoFeed, render, surfaceCache;
+    return regeneratorRuntime.wrap(function _callee$(_context) {
+        while (1) {
+            switch (_context.prev = _context.next) {
+                case 0:
+                    _context.next = 2;
+                    return downloadModel();
 
-    var effect = new THREE.VREffect(renderer);
-    effect.separation = 0;
-    effect.setSize(window.innerWidth, window.innerHeight);
+                case 2:
+                    model = _context.sent;
+                    inferenceCanvas = document.createElement("canvas");
 
-    var vrDisplay = void 0;
+                    inferenceCanvas.height = 416;
+                    inferenceCanvas.width = 416;
+                    inferenceContext = inferenceCanvas.getContext("2d");
 
-    if (navigator.getVRDisplays) {
-        navigator.getVRDisplays().then(function (displays) {
-            return displays.length && (vrDisplay = displays[0]);
-        });
-    }
+                    // Renderer and VR stuff
 
-    // Button to enable VR mode
-    enterVRButton.addEventListener("click", function () {
-        var controls = document.getElementById("controls");
+                    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 
-        if (enterVRButton.classList.contains("small")) {
-            closeVR();
-            enterVRButton.classList.remove("small");
-            controls.classList.remove("hidden");
-        } else {
-            if (navigator.userAgent.includes("Mobile VR")) {
-                vrDisplay.requestPresent([{ source: renderer.domElement }]);
-            } else {
-                effect = new THREE.StereoEffect(renderer);
-                effect.separation = 0;
-                effect.setSize(window.innerWidth, window.innerHeight);
-            }
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                    document.body.appendChild(renderer.domElement);
+                    renderer.domElement.style.backgroundColor = "black";
 
-            // Shrink VR button
-            enterVRButton.classList.add("small");
+                    effect = new THREE.VREffect(renderer);
 
-            // Hide controls
-            controls.classList.add("hidden");
-        }
-    });
+                    effect.separation = 0;
+                    effect.setSize(window.innerWidth, window.innerHeight);
 
-    var closeVR = function closeVR() {
-        effect = new THREE.VREffect(renderer);
-        effect.separation = 0;
-        effect.setSize(window.innerWidth, window.innerHeight);
-    };
+                    vrDisplay = void 0;
 
-    // Scenes and camera
-    var fov = 70;
-    var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 1, 1000);
-    scene.add(camera);
 
-    // Box object
-    var texture = void 0;
-    var fireTexture = void 0;
-    var noiseTexture = void 0;
-    var boxMaterial = void 0;
-    var box = void 0;
+                    if (navigator.getVRDisplays) {
+                        navigator.getVRDisplays().then(function (displays) {
+                            return displays.length && (vrDisplay = displays[0]);
+                        });
+                    }
 
-    var makeBoxObject = function makeBoxObject() {
-        window.video = document.createElement("video");
-        video.autoplay = true;
-        video.width = window.innerWidth / 2;
-        video.height = window.innerHeight / 2;
-        getVideoFeed();
+                    // Button to enable VR mode
+                    enterVRButton.addEventListener("click", function () {
+                        var controls = document.getElementById("controls");
 
-        var boxWidth = video.width;
-        var boxHeight = video.height;
-
-        var boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, 1);
-        texture = new THREE.Texture(video);
-        texture.minFilter = THREE.NearestFilter;
-
-        fireTexture = new THREE.Texture(fire);
-        fireTexture.minFilter = THREE.NearestFilter;
-        fireTexture.wrapS = THREE.RepeatWrapping;
-        fireTexture.wrapT = THREE.RepeatWrapping;
-
-        noiseTexture = new THREE.Texture(noise);
-        noiseTexture.minFilter = THREE.NearestFilter;
-        noiseTexture.wrapS = THREE.RepeatWrapping;
-        noiseTexture.wrapT = THREE.RepeatWrapping;
-
-        boxMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                texture: {
-                    type: "t",
-                    value: texture
-                },
-                fireTex: {
-                    type: "t",
-                    value: fireTexture
-                },
-                noiseTex: {
-                    type: "t",
-                    value: noiseTexture
-                },
-                width: {
-                    type: "f",
-                    value: video.width
-                },
-                height: {
-                    type: "f",
-                    value: video.height
-                },
-                radius: {
-                    type: "f",
-                    value: 0.4
-                },
-                intensity: {
-                    type: "f",
-                    value: 1.0
-                },
-                edgeR: {
-                    type: "f",
-                    value: 1.0
-                },
-                edgeG: {
-                    type: "f",
-                    value: 1.0
-                },
-                edgeB: {
-                    type: "f",
-                    value: 1.0
-                },
-                surfaceR: {
-                    type: "f",
-                    value: 0.0
-                },
-                surfaceG: {
-                    type: "f",
-                    value: 0.0
-                },
-                surfaceB: {
-                    type: "f",
-                    value: 0.0
-                },
-                lightCols: {
-                    type: "t",
-                    value: [].concat(_toConsumableArray(new Array(10))).map(function (v) {
-                        return Math.floor(Math.random() * 10 * video.width / 60);
-                    })
-                },
-                lightColsEnds: {
-                    type: "t",
-                    value: [].concat(_toConsumableArray(new Array(10))).map(function (v) {
-                        return Math.floor(Math.random() * 10 * video.height / 50);
-                    })
-                },
-                fireTimer: {
-                    type: "f",
-                    value: 0.0
-                }
-            },
-            vertexShader: vertexShaderSource.text,
-            fragmentShader: Filters.compileShader("sobel3x3")
-        });
-
-        box = new THREE.Mesh(boxGeometry, boxMaterial);
-        scene.add(box);
-
-        camera.position.z = 0.5 * boxWidth * Math.atan(degToRad(90 - fov / 2)) + 100;
-    };
-
-    var getVideoFeedAttempts = 0;
-
-    var getVideoFeed = function getVideoFeed() {
-
-        var errMessage = "There was an error accessing the camera.";
-
-        if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
-            errMessage += " iOS might still have no support for camera API.";
-        }
-
-        if (!location.protocol.startsWith("https")) {
-            errMessage += " Please make sure you are using https.";
-        }
-
-        try {
-
-            if ("mozGetUserMedia" in navigator) {
-                navigator.mozGetUserMedia({ video: { facingMode: "environment" } }, function (stream) {
-                    video.srcObject = stream;
-                }, function (err) {
-                    console.log(err);
-                    alert(errMessage);
-                });
-            } else {
-                var mediaDevicesSupport = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
-
-                if (mediaDevicesSupport) {
-                    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function (stream) {
-                        video.srcObject = stream;
-                    }).catch(function (err) {
-                        console.log(err);
-                        getVideoFeedAttempts++;
-
-                        // Rarely, getting the camera fails. Re-attempting usually works, on refresh.
-                        if (getVideoFeedAttempts < 3) {
-                            getVideoFeed();
+                        if (enterVRButton.classList.contains("small")) {
+                            closeVR();
+                            enterVRButton.classList.remove("small");
+                            controls.classList.remove("hidden");
                         } else {
-                            alert(errMessage);
+                            if (navigator.userAgent.includes("Mobile VR")) {
+                                vrDisplay.requestPresent([{ source: renderer.domElement }]);
+                            } else {
+                                effect = new THREE.StereoEffect(renderer);
+                                effect.separation = 0;
+                                effect.setSize(window.innerWidth, window.innerHeight);
+                            }
+
+                            // Shrink VR button
+                            enterVRButton.classList.add("small");
+
+                            // Hide controls
+                            controls.classList.add("hidden");
                         }
                     });
-                } else {
-                    var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
 
-                    if (getUserMedia) {
-                        getUserMedia({ video: { facingMode: "environment" } }, function (stream) {
-                            video.srcObject = stream;
-                        }, function (err) {
-                            console.log(err);
-                            alert(errMessage);
+                    closeVR = function closeVR() {
+                        effect = new THREE.VREffect(renderer);
+                        effect.separation = 0;
+                        effect.setSize(window.innerWidth, window.innerHeight);
+                    };
+
+                    // Scenes and camera
+
+
+                    fov = 70;
+                    scene = new THREE.Scene();
+                    camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 1, 1000);
+
+                    scene.add(camera);
+
+                    // Box object
+                    texture = void 0;
+                    fireTexture = void 0;
+                    noiseTexture = void 0;
+                    boxMaterial = void 0;
+                    box = void 0;
+
+                    // Detection box/canvas
+
+                    detectionCanvas = document.createElement("canvas");
+                    detectionContext = void 0;
+                    detectionTexture = void 0;
+                    detectionMaterial = void 0;
+                    detectionBox = void 0;
+
+                    makeBoxObject = function makeBoxObject() {
+                        window.video = document.createElement("video");
+                        video.autoplay = true;
+                        video.width = window.innerWidth / 2;
+                        video.height = window.innerHeight / 2;
+                        getVideoFeed();
+
+                        detectionCanvas.width = video.width;
+                        detectionCanvas.height = video.height;
+                        detectionContext = detectionCanvas.getContext("2d");
+
+                        var boxWidth = video.width;
+                        var boxHeight = video.height;
+
+                        var boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, 1);
+                        texture = new THREE.Texture(video);
+                        texture.minFilter = THREE.NearestFilter;
+
+                        var detectionGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, 1);
+                        detectionTexture = new THREE.Texture(detectionCanvas);
+                        detectionTexture.minFilter = THREE.NearestFilter;
+
+                        fireTexture = new THREE.Texture(fire);
+                        fireTexture.minFilter = THREE.NearestFilter;
+                        fireTexture.wrapS = THREE.RepeatWrapping;
+                        fireTexture.wrapT = THREE.RepeatWrapping;
+
+                        noiseTexture = new THREE.Texture(noise);
+                        noiseTexture.minFilter = THREE.NearestFilter;
+                        noiseTexture.wrapS = THREE.RepeatWrapping;
+                        noiseTexture.wrapT = THREE.RepeatWrapping;
+
+                        boxMaterial = new THREE.ShaderMaterial({
+                            uniforms: {
+                                texture: {
+                                    type: "t",
+                                    value: texture
+                                },
+                                fireTex: {
+                                    type: "t",
+                                    value: fireTexture
+                                },
+                                noiseTex: {
+                                    type: "t",
+                                    value: noiseTexture
+                                },
+                                width: {
+                                    type: "f",
+                                    value: video.width
+                                },
+                                height: {
+                                    type: "f",
+                                    value: video.height
+                                },
+                                radius: {
+                                    type: "f",
+                                    value: 0.4
+                                },
+                                intensity: {
+                                    type: "f",
+                                    value: 1.0
+                                },
+                                edgeR: {
+                                    type: "f",
+                                    value: 1.0
+                                },
+                                edgeG: {
+                                    type: "f",
+                                    value: 1.0
+                                },
+                                edgeB: {
+                                    type: "f",
+                                    value: 1.0
+                                },
+                                surfaceR: {
+                                    type: "f",
+                                    value: 0.0
+                                },
+                                surfaceG: {
+                                    type: "f",
+                                    value: 0.0
+                                },
+                                surfaceB: {
+                                    type: "f",
+                                    value: 0.0
+                                },
+                                lightCols: {
+                                    type: "t",
+                                    value: [].concat(_toConsumableArray(new Array(10))).map(function (v) {
+                                        return Math.floor(Math.random() * 10 * video.width / 60);
+                                    })
+                                },
+                                lightColsEnds: {
+                                    type: "t",
+                                    value: [].concat(_toConsumableArray(new Array(10))).map(function (v) {
+                                        return Math.floor(Math.random() * 10 * video.height / 50);
+                                    })
+                                },
+                                fireTimer: {
+                                    type: "f",
+                                    value: 0.0
+                                }
+                            },
+                            vertexShader: vertexShaderSource.text,
+                            fragmentShader: Filters.compileShader("sobel3x3")
                         });
-                    } else {
-                        alert("Camera not available");
+                        box = new THREE.Mesh(boxGeometry, boxMaterial);
+                        scene.add(box);
+
+                        detectionMaterial = new THREE.MeshBasicMaterial({ map: detectionTexture, transparent: true });
+                        detectionBox = new THREE.Mesh(detectionGeometry, detectionMaterial);
+                        scene.add(detectionBox);
+
+                        camera.position.z = 0.5 * boxWidth * Math.atan(degToRad(90 - fov / 2)) + 100;
+
+                        detectionContext.fillStyle = "#FF0000";
+                        detectionContext.fillRect(detectionCanvas.width / 4, detectionCanvas.height / 4, detectionCanvas.width / 4, detectionCanvas.height / 4);
+                    };
+
+                    getVideoFeedAttempts = 0;
+
+                    getVideoFeed = function getVideoFeed() {
+
+                        var errMessage = "There was an error accessing the camera.";
+
+                        if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+                            errMessage += " iOS might still have no support for camera API.";
+                        }
+
+                        if (!location.protocol.startsWith("https")) {
+                            errMessage += " Please make sure you are using https.";
+                        }
+
+                        try {
+
+                            if ("mozGetUserMedia" in navigator) {
+                                navigator.mozGetUserMedia({ video: { facingMode: "environment" } }, function (stream) {
+                                    video.srcObject = stream;
+                                }, function (err) {
+                                    console.log(err);
+                                    alert(errMessage);
+                                });
+                            } else {
+                                var mediaDevicesSupport = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
+
+                                if (mediaDevicesSupport) {
+                                    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function (stream) {
+                                        video.srcObject = stream;
+                                    }).catch(function (err) {
+                                        console.log(err);
+                                        getVideoFeedAttempts++;
+
+                                        // Rarely, getting the camera fails. Re-attempting usually works, on refresh.
+                                        if (getVideoFeedAttempts < 3) {
+                                            getVideoFeed();
+                                        } else {
+                                            alert(errMessage);
+                                        }
+                                    });
+                                } else {
+                                    var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+
+                                    if (getUserMedia) {
+                                        getUserMedia({ video: { facingMode: "environment" } }, function (stream) {
+                                            video.srcObject = stream;
+                                        }, function (err) {
+                                            console.log(err);
+                                            alert(errMessage);
+                                        });
+                                    } else {
+                                        alert("Camera not available");
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            alert(errMessage);
+                        }
+                    };
+
+                    // Render loop
+
+
+                    render = function render() {
+                        requestAnimationFrame(render);
+
+                        if (video.currentTime) {
+                            texture.needsUpdate = true;
+                            detectionTexture.needsUpdate = true;
+                        }
+
+                        if (Filters.fire) {
+                            fireTexture.needsUpdate = true;
+                            noiseTexture.needsUpdate = true;
+                        }
+
+                        if (Filters.matrix) {
+                            boxMaterial.uniforms.lightColsEnds.value = boxMaterial.uniforms.lightColsEnds.value.map(function (v) {
+                                return v -= Math.random() / 2;
+                            });
+                        }
+
+                        effect.render(scene, camera);
+
+                        // YOLO
+                        if (!inferring) {
+                            console.log("inferring...");
+                            inferring = true;
+                            inferenceContext.drawImage(video, 0, 0, 416, 416);
+
+                            var inputImage = tf.tidy(function () {
+                                var scalar = tf.scalar(255);
+                                var input = cropImage(tf.fromPixels(inferenceCanvas)).expandDims(0).toFloat().div(scalar);
+                                return input;
+                            });
+                            detectionContext.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height);
+
+                            yolo(inputImage, model).then(function (boxes) {
+                                boxes.forEach(function (_ref2) {
+                                    var left = _ref2.left,
+                                        right = _ref2.right,
+                                        top = _ref2.top,
+                                        bottom = _ref2.bottom,
+                                        className = _ref2.className,
+                                        classProb = _ref2.classProb;
+
+
+                                    var text = className + " [" + parseInt(classProb * 100) + "%]";
+                                    var textSize = detectionContext.measureText(text);
+                                    var textLeft = left + (right - left) / 2;
+
+                                    detectionContext.fillStyle = "white";
+                                    detectionContext.fillRect(textLeft - textSize.width / 2, top - 20, textSize.width, 20);
+                                    detectionContext.fillStyle = "black";
+
+                                    detectionContext.beginPath();
+                                    detectionContext.fillText(text, textLeft, top - 5);
+                                    detectionContext.rect(left, top, right - left, bottom - top);
+                                    detectionContext.stroke();
+                                });
+
+                                inferring = false;
+                            });
+                        }
+                    };
+
+                    makeBoxObject();
+                    render();
+
+                    // Request fullscreen when tapped
+                    if (!window.location.href.includes("localhost")) {
+                        renderer.domElement.addEventListener("click", function () {
+                            document.fullscreenEnabled && renderer.domElement.requestFullScreen() || document.webkitFullscreenEnabled && renderer.domElement.webkitRequestFullScreen() || document.mozFullScreenEnabled && renderer.domElement.mozRequestFullScreen() || document.msFullScreenEnabled && renderer.domElement.msRequestFullScreen();
+                        });
                     }
-                }
+
+                    // Resizing
+                    window.addEventListener("resize", function () {
+                        effect.setSize(window.innerWidth, window.innerHeight);
+                        camera.aspect = window.innerWidth / window.innerHeight;
+                        camera.updateProjectionMatrix();
+                        scene.remove(box);
+                        video.pause();
+                        makeBoxObject();
+
+                        setShader(document.querySelector(".filter-button:disabled").dataset.filter);
+                        setIntensity((parseFloat(document.getElementById("intensity-slider").value) || 0.01) / 100);
+                        setRadius(parseFloat(document.getElementById("radius-slider").value) / 100);
+                    });
+
+                    window.setShader = function (shader) {
+                        Filters.shader = shader;
+                        boxMaterial.fragmentShader = Filters.compileShader(shader);
+                        boxMaterial.needsUpdate = true;
+                    };
+
+                    window.setRadius = function (val) {
+                        boxMaterial.uniforms.radius.value = val;
+                    };
+
+                    window.setIntensity = function (val) {
+                        boxMaterial.uniforms.intensity.value = 1 - val;
+                    };
+
+                    window.toggleInverted = function () {
+                        Filters.isInverted = !Filters.isInverted;
+                        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader);
+                        boxMaterial.needsUpdate = true;
+                    };
+
+                    window.setEdgeColour = function (_ref3) {
+                        var _ref3$r = _ref3.r,
+                            r = _ref3$r === undefined ? 0 : _ref3$r,
+                            _ref3$g = _ref3.g,
+                            g = _ref3$g === undefined ? 0 : _ref3$g,
+                            _ref3$b = _ref3.b,
+                            b = _ref3$b === undefined ? 0 : _ref3$b;
+
+                        boxMaterial.uniforms.edgeR.value = r / 255;
+                        boxMaterial.uniforms.edgeG.value = g / 255;
+                        boxMaterial.uniforms.edgeB.value = b / 255;
+                    };
+
+                    // For reverting to, when toggling back to colour, from background
+                    surfaceCache = { r: 0, g: 0, b: 0 };
+
+
+                    window.setSurfaceColour = function (_ref4) {
+                        var _ref4$r = _ref4.r,
+                            r = _ref4$r === undefined ? 0 : _ref4$r,
+                            _ref4$g = _ref4.g,
+                            g = _ref4$g === undefined ? 0 : _ref4$g,
+                            _ref4$b = _ref4.b,
+                            b = _ref4$b === undefined ? 0 : _ref4$b;
+
+                        boxMaterial.uniforms.surfaceR.value = surfaceCache.r = r / 255;
+                        boxMaterial.uniforms.surfaceG.value = surfaceCache.g = g / 255;
+                        boxMaterial.uniforms.surfaceB.value = surfaceCache.b = b / 255;
+                    };
+
+                    window.toggleReducedColours = function () {
+                        Filters.hasReducedColours = !Filters.hasReducedColours;
+                        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader);
+                        boxMaterial.needsUpdate = true;
+                    };
+
+                    window.toggleBackground = function (isBackground) {
+
+                        Filters.hasBackground = !!isBackground;
+
+                        if (Filters.hasBackground) {
+                            boxMaterial.uniforms.surfaceR.value = 0;
+                            boxMaterial.uniforms.surfaceG.value = 0;
+                            boxMaterial.uniforms.surfaceB.value = 0;
+                        } else {
+                            boxMaterial.uniforms.surfaceR.value = surfaceCache.r;
+                            boxMaterial.uniforms.surfaceG.value = surfaceCache.g;
+                            boxMaterial.uniforms.surfaceB.value = surfaceCache.b;
+                        }
+
+                        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader);
+                        boxMaterial.needsUpdate = true;
+                    };
+
+                    window.updateColourBlindness = function (type) {
+                        Filters.colourBlindness = type.toLowerCase();
+                        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader);
+                        boxMaterial.needsUpdate = true;
+                    };
+
+                    window.toggleMatrix = function () {
+
+                        Filters.matrix = true;
+
+                        clearInterval(Filters.matrixInterval);
+
+                        toggleBackground(false);
+                        setEdgeColour({ r: 0, g: 255, b: 0 });
+                        setIntensity(1);
+                        setRadius(1);
+
+                        boxMaterial.fragmentShader = Filters.compileShader("matrix");
+                        boxMaterial.needsUpdate = true;
+
+                        Filters.matrixInterval = setInterval(function () {
+
+                            for (var i = 0; i < boxMaterial.uniforms.lightColsEnds.value.length; i++) {
+                                if (boxMaterial.uniforms.lightColsEnds.value[i] < 0) {
+                                    boxMaterial.uniforms.lightCols.value[i] = Math.floor(Math.random() * 10 * video.width / 50);
+                                    boxMaterial.uniforms.lightColsEnds.value[i] = video.height / 5;
+                                }
+                            }
+                        }, 100);
+                    };
+
+                    window.toggleFire = function (off) {
+
+                        if (off) {
+                            Filters.fire = false;
+                            audioElem.pause();
+                            boxMaterial.uniforms.fireTimer.value = 10000000;
+                            clearInterval(Filters.fireInterval);
+                            window.setShader(Filters.shader);
+                            return;
+                        }
+
+                        if (Filters.fire) {
+                            return;
+                        }
+
+                        Filters.fire = true;
+                        Filters.fireTimer = 0;
+                        clearInterval(Filters.matrixInterval);
+                        clearInterval(Filters.fireInterval);
+
+                        boxMaterial.uniforms.surfaceR.value = surfaceCache.r;
+                        boxMaterial.uniforms.surfaceG.value = surfaceCache.g;
+                        boxMaterial.uniforms.surfaceB.value = surfaceCache.b;
+                        setEdgeColour({ r: 255, g: 177, b: 0 });
+                        setIntensity(1);
+                        setRadius(1);
+
+                        boxMaterial.fragmentShader = Filters.compileShader("fire");
+                        boxMaterial.needsUpdate = true;
+
+                        Filters.fireInterval = setInterval(function () {
+                            Filters.fireTimer += 8;
+                            boxMaterial.uniforms.fireTimer.value = Filters.fireTimer % fire.height / 2 / fire.height;
+                        }, 2);
+
+                        // Audio
+                        if (Filters.fire) {
+                            // audioElem.currentTime = 47
+                            audioElem.play();
+                        }
+                    };
+
+                case 52:
+                case "end":
+                    return _context.stop();
             }
-        } catch (e) {
-            alert(errMessage);
         }
-    };
-
-    // Render loop
-    var render = function render() {
-        requestAnimationFrame(render);
-
-        if (video.currentTime) {
-            texture.needsUpdate = true;
-        }
-
-        if (Filters.fire) {
-            fireTexture.needsUpdate = true;
-            noiseTexture.needsUpdate = true;
-        }
-
-        if (Filters.matrix) {
-            boxMaterial.uniforms.lightColsEnds.value = boxMaterial.uniforms.lightColsEnds.value.map(function (v) {
-                return v -= Math.random() / 2;
-            });
-        }
-
-        effect.render(scene, camera);
-    };
-
-    makeBoxObject();
-    render();
-
-    // Request fullscreen when tapped
-    if (!window.location.href.includes("localhost")) {
-        renderer.domElement.addEventListener("click", function () {
-            document.fullscreenEnabled && renderer.domElement.requestFullScreen() || document.webkitFullscreenEnabled && renderer.domElement.webkitRequestFullScreen() || document.mozFullScreenEnabled && renderer.domElement.mozRequestFullScreen() || document.msFullScreenEnabled && renderer.domElement.msRequestFullScreen();
-        });
-    }
-
-    // Resizing
-    window.addEventListener("resize", function () {
-        effect.setSize(window.innerWidth, window.innerHeight);
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        scene.remove(box);
-        video.pause();
-        makeBoxObject();
-
-        setShader(document.querySelector(".filter-button:disabled").dataset.filter);
-        setIntensity((parseFloat(document.getElementById("intensity-slider").value) || 0.01) / 100);
-        setRadius(parseFloat(document.getElementById("radius-slider").value) / 100);
-    });
-
-    window.setShader = function (shader) {
-        Filters.shader = shader;
-        boxMaterial.fragmentShader = Filters.compileShader(shader);
-        boxMaterial.needsUpdate = true;
-    };
-
-    window.setRadius = function (val) {
-        boxMaterial.uniforms.radius.value = val;
-    };
-
-    window.setIntensity = function (val) {
-        boxMaterial.uniforms.intensity.value = 1 - val;
-    };
-
-    window.toggleInverted = function () {
-        Filters.isInverted = !Filters.isInverted;
-        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader);
-        boxMaterial.needsUpdate = true;
-    };
-
-    window.setEdgeColour = function (_ref) {
-        var _ref$r = _ref.r,
-            r = _ref$r === undefined ? 0 : _ref$r,
-            _ref$g = _ref.g,
-            g = _ref$g === undefined ? 0 : _ref$g,
-            _ref$b = _ref.b,
-            b = _ref$b === undefined ? 0 : _ref$b;
-
-        boxMaterial.uniforms.edgeR.value = r / 255;
-        boxMaterial.uniforms.edgeG.value = g / 255;
-        boxMaterial.uniforms.edgeB.value = b / 255;
-    };
-
-    // For reverting to, when toggling back to colour, from background
-    var surfaceCache = { r: 0, g: 0, b: 0 };
-
-    window.setSurfaceColour = function (_ref2) {
-        var _ref2$r = _ref2.r,
-            r = _ref2$r === undefined ? 0 : _ref2$r,
-            _ref2$g = _ref2.g,
-            g = _ref2$g === undefined ? 0 : _ref2$g,
-            _ref2$b = _ref2.b,
-            b = _ref2$b === undefined ? 0 : _ref2$b;
-
-        boxMaterial.uniforms.surfaceR.value = surfaceCache.r = r / 255;
-        boxMaterial.uniforms.surfaceG.value = surfaceCache.g = g / 255;
-        boxMaterial.uniforms.surfaceB.value = surfaceCache.b = b / 255;
-    };
-
-    window.toggleReducedColours = function () {
-        Filters.hasReducedColours = !Filters.hasReducedColours;
-        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader);
-        boxMaterial.needsUpdate = true;
-    };
-
-    window.toggleBackground = function (isBackground) {
-
-        Filters.hasBackground = !!isBackground;
-
-        if (Filters.hasBackground) {
-            boxMaterial.uniforms.surfaceR.value = 0;
-            boxMaterial.uniforms.surfaceG.value = 0;
-            boxMaterial.uniforms.surfaceB.value = 0;
-        } else {
-            boxMaterial.uniforms.surfaceR.value = surfaceCache.r;
-            boxMaterial.uniforms.surfaceG.value = surfaceCache.g;
-            boxMaterial.uniforms.surfaceB.value = surfaceCache.b;
-        }
-
-        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader);
-        boxMaterial.needsUpdate = true;
-    };
-
-    window.updateColourBlindness = function (type) {
-        Filters.colourBlindness = type.toLowerCase();
-        boxMaterial.fragmentShader = Filters.compileShader(Filters.shader);
-        boxMaterial.needsUpdate = true;
-    };
-
-    window.toggleMatrix = function () {
-
-        Filters.matrix = true;
-
-        clearInterval(Filters.matrixInterval);
-
-        toggleBackground(false);
-        setEdgeColour({ r: 0, g: 255, b: 0 });
-        setIntensity(1);
-        setRadius(1);
-
-        boxMaterial.fragmentShader = Filters.compileShader("matrix");
-        boxMaterial.needsUpdate = true;
-
-        Filters.matrixInterval = setInterval(function () {
-
-            for (var i = 0; i < boxMaterial.uniforms.lightColsEnds.value.length; i++) {
-                if (boxMaterial.uniforms.lightColsEnds.value[i] < 0) {
-                    boxMaterial.uniforms.lightCols.value[i] = Math.floor(Math.random() * 10 * video.width / 50);
-                    boxMaterial.uniforms.lightColsEnds.value[i] = video.height / 5;
-                }
-            }
-        }, 100);
-    };
-
-    window.toggleFire = function (off) {
-
-        if (off) {
-            Filters.fire = false;
-            audioElem.pause();
-            boxMaterial.uniforms.fireTimer.value = 10000000;
-            clearInterval(Filters.fireInterval);
-            window.setShader(Filters.shader);
-            return;
-        }
-
-        if (Filters.fire) {
-            return;
-        }
-
-        Filters.fire = true;
-        Filters.fireTimer = 0;
-        clearInterval(Filters.matrixInterval);
-        clearInterval(Filters.fireInterval);
-
-        boxMaterial.uniforms.surfaceR.value = surfaceCache.r;
-        boxMaterial.uniforms.surfaceG.value = surfaceCache.g;
-        boxMaterial.uniforms.surfaceB.value = surfaceCache.b;
-        setEdgeColour({ r: 255, g: 177, b: 0 });
-        setIntensity(1);
-        setRadius(1);
-
-        boxMaterial.fragmentShader = Filters.compileShader("fire");
-        boxMaterial.needsUpdate = true;
-
-        Filters.fireInterval = setInterval(function () {
-            Filters.fireTimer += 8;
-            boxMaterial.uniforms.fireTimer.value = Filters.fireTimer % fire.height / 2 / fire.height;
-        }, 2);
-
-        // Audio
-        if (Filters.fire) {
-            // audioElem.currentTime = 47
-            audioElem.play();
-        }
-    };
-});
+    }, _callee, undefined);
+})));
 
 "use strict";
 
@@ -571,8 +671,8 @@ window.addEventListener("load", function () {
     intensitySlider.value = parseInt(window.localStorage.getItem("intensity")) || 100;
 
     // Events
-    document.addEventListener("click", function (_ref3) {
-        var target = _ref3.target;
+    document.addEventListener("click", function (_ref5) {
+        var target = _ref5.target;
 
         if (target.dataset.filter) {
             window.setShader(target.dataset.filter);
@@ -584,8 +684,8 @@ window.addEventListener("load", function () {
         }
     });
 
-    var updateRadius = function updateRadius(_ref4) {
-        var target = _ref4.target;
+    var updateRadius = function updateRadius(_ref6) {
+        var target = _ref6.target;
 
         window.setRadius(target.value / 100);
         radiusValue.innerText = target.value + "%";
@@ -596,8 +696,8 @@ window.addEventListener("load", function () {
     radiusSlider.addEventListener("change", updateRadius);
     radiusSlider.addEventListener("mousemove", updateRadius);
 
-    var updateIntensity = function updateIntensity(_ref5) {
-        var target = _ref5.target;
+    var updateIntensity = function updateIntensity(_ref7) {
+        var target = _ref7.target;
 
         window.setIntensity(target.value === "0" ? 0.01 : target.value / 100);
         intensityValue.innerText = target.value + "%";
