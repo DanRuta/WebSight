@@ -65,7 +65,7 @@ const initUI = () => {
     intensitySlider.addEventListener("mousemove", updateIntensity)
     intensitySlider.addEventListener("change", updateIntensity)
 
-    const controlMenuToggle = document.querySelector("#controls .toggle")
+    const controlMenuToggle = document.querySelector(".toggle")
     controlMenuToggle.addEventListener("click", () => controlsRoot.classList.toggle("open"))
 
     invertedCheckbox.addEventListener("click", () => toggleInverted())

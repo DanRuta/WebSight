@@ -40,6 +40,9 @@
                 margin: 0 auto;
                 padding: 10px;
 
+                overflow-y: scroll;
+                max-height: 80vh;
+
                 background: rgba(255,255,255, 0.9);
                 border-radius: 3px;
                 font-size: 120%;
@@ -74,7 +77,7 @@
                 text-align: center;
             }
 
-            #controls .toggle {
+            .toggle {
                 background-color: transparent;
                 width: 50px;
                 height: 50px;
@@ -85,12 +88,14 @@
                 position: absolute;
                 bottom: -50px;
                 left:50%;
+                top: 0;
                 margin-left:-25px;
                 transform: rotateX(0);
                 transition: transform 500ms ease;
             }
 
-            #controls.open .toggle {
+            #controls.open ~ .toggle {
+                top: auto;
                 transform: rotateX(180deg);
             }
 
@@ -286,6 +291,7 @@
                     </div>
                 </span>
 
+            </div>
                 <button class="toggle">
                     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 129 129">
                         <g>
@@ -293,7 +299,6 @@
                         </g>
                     </svg>
                 </button>
-            </div>
         </div>
     </body>
     <link rel="icon" href="./images/favicon.ico" type="image/x-icon">
