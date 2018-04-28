@@ -121,7 +121,7 @@ window.addEventListener("load", async () => {
         detectionCanvas.width = video.width
         detectionCanvas.height = video.height
         window.detectionContext = detectionContext = detectionCanvas.getContext("2d")
-        detectionContext.strokeWidth = 5
+        detectionContext.strokeWidth = 25
         detectionContext.font = "20px Arial"
         detectionContext.textAlign = "center"
 
