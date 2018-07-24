@@ -236,6 +236,14 @@
                 to {transform: rotateZ(360deg)}
             }
 
+            input[type=checkbox] {
+                width: 25px !important;
+                height: 25px !important;
+                margin: 5px !important;
+                margin-left: 10px !important;
+                margin-right: 10px !important;
+            }
+
         </style>
     </head>
     <body>
@@ -303,7 +311,7 @@
     </body>
     <link rel="icon" href="./images/favicon.ico" type="image/x-icon">
     <script>
-        if ("serviceworker" in navigator) {
+        if ("serviceWorker" in navigator) {
             navigator.serviceWorker.register("/sw.js")
             .then(function(reg){reg.active&&console.log("SW active")})
             .catch(function(e){console.log("SW Error:",e)})
