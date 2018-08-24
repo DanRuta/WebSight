@@ -30,3 +30,26 @@ WebSight is a small experiment that uses highly configurable WebGL shaders in ph
 
 #### To run
 You must serve this via the included ```server.js``` file which you can run with node.js.
+
+# Citation
+
+```
+@inproceedings{Ruta:2018:WUA:3192714.3196319,
+    author = {Ruta, Dan and Jordan, Louis and Fox, Tom James and Boakes, Rich},
+    title = {WebSight: Using AR and WebGL Shaders to Assist the Visually Impaired},
+    booktitle = {Proceedings of the Internet of Accessible Things},
+    series = {W4A '18},
+    year = {2018},
+    isbn = {978-1-4503-5651-0},
+    location = {Lyon, France},
+    pages = {9:1--9:2},
+    articleno = {9},
+    numpages = {2},
+    url = {http://doi.acm.org/10.1145/3192714.3196319},
+    doi = {10.1145/3192714.3196319},
+    acmid = {3196319},
+    publisher = {ACM},
+    address = {New York, NY, USA},
+    keywords = {AR, Augmented Reality, PWA, VR, Virtual Reality, WebGL, accessibility, impaired, shaders, visually, web, websight},
+}
+```
