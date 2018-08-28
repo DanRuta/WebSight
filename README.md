@@ -5,7 +5,7 @@ Aiding the visually impaired through real time augmented reality via AI object d
 
 To aid designers, the major colour blindness types can also be simulated through shader configurations.
 
-Article: (soon)
+Article: https://medium.freecodecamp.org/how-you-can-use-ai-ar-and-webgl-shaders-to-assist-the-visually-impaired-3df5bdf3b3e2
 
 Research paper link: https://dl.acm.org/citation.cfm?doid=3192714.3196319
 
